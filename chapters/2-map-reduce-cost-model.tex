@@ -83,6 +83,8 @@ A relation can be stored as a file in a distributed file system. There are sever
 Relation (represents a table): $R(A,B) \subseteq A \times B$
 
 \begin{enumerate}
+    \setlength\itemsep{1em}
+
     \item \textit{Selection}: Apply a condition $C$ to each tuple in the relation and produce as output only those tuple that satisfy $C$. The result of this selection is denoted $\sigma_C(R)$.
     \begin{equation*}
         \begin{split}
@@ -104,7 +106,7 @@ Relation (represents a table): $R(A,B) \subseteq A \times B$
     \textbf{Map}: create a tuple $t'$ that contains only the attributes in $S$.
 
     \textbf{Reduce}: for each key $t'$ produced by the Map, there will be ore or more key-value pairs $(t', t')$, so the Reduce function will remove the duplicates.
-
+    
     \item \textit{Union}, \textit{Intersection}, and \textit{Difference}: These operations are defined in the usual way.  
     
     \[
@@ -157,11 +159,19 @@ Relation (represents a table): $R(A,B) \subseteq A \times B$
         \begin{split}
                                           \forall (a,b)\in R & \xrightarrow{MAP_R} (b,(a, 'R')) \\
                                           \forall (b,c)\in S & \xrightarrow{MAP_S} (b, (c, 'S')) \\
-            (b, ((a_1,R),(c_1, S), (c_3, S),(a_2, R),\dots)) & \xrightarrow{REDUCE} 
+            (b, ((a_1,R),(c_1, S), (c_3, S),(a_2, R),\dots)) & \xrightarrow{REDUCE} \begin{cases}
+                                                                                        1. \text{ Sort } \ell \text{ using 2nd element} \\ 
+                                                                                        2. \ a \text{ list of elements from } R \\
+                                                                                        3. \ b \text{ list of elements from } S \\
+                                                                                        4. \ \forall (a, c) \in a \times b \\ 
+                                                                                        5. \text{ Output} (a, b, c)
+                                                                                    \end{cases}
         \end{split}
     \end{equation*}
 
-    % TODO 
+    \textbf{Map}: For each tuple $(a, b)$ of $R$, produce the key-value pair $(b, (a', R'))$. For each tuple $(b, c)$ of $S$, produce the key-value pair $(b, (c', S'))$.
+
+    \textbf{Reduce}: Each key value $b$ will be associated with a list of pairs that are either of the form $(R, a)$ or $(S, c)$. Construct all pairs consisting of one with first component $R$ and the other with first component $S$. The output from this key and value list is a sequence of key-value pairs. Each value is one of the triple $(a, b, c)$ such that $(R, a)$ and $(S, c)$ are in the value list.
 
 \item \textit{Grouping} and \textit{Aggregation}: Given a relation $R$, partition its tuples according to their values in one set of attributes $G$, called the \textit{grouping attributes}. The permitted aggregations are SUM, COUNT, AVG, MIN, and MAX, with the obvious meanings. We denote a grouping-and-aggregation operation on a relation $R$ by $\gamma_{X}(R)$, where $X$ is a list of element that are either.
     \begin{itemize}
@@ -169,7 +179,21 @@ Relation (represents a table): $R(A,B) \subseteq A \times B$
         \item[(b)] An expression $\theta(A)$, where $A$ is an attribute and $\theta$ is an aggregation function.
     \end{itemize}
     The result of this operation is one tuple for each group, with components for each grouping attribute and for each aggregation.
+
+    \begin{equation*}
+        \begin{split}
+             \forall (a,b)\in R & \xrightarrow{MAP} (a,b)\\
+            (a,(b_1,\dots,b_n)) &\xrightarrow{REDUCE} (a, \theta(b_1,\dots,b_n))
+        \end{split}
+    \end{equation*}
+
+    \textbf{Map}: For each tuple $(a, b, c)$ produce the key-value pair $(a, b)$.
+
+    \textbf{Reduce}: Each key $a$ represent a group. Apply the aggregation operator $\theta$ to the list $(b_1,\dots,b_n)$ of values associated with $a$. The output is the pair $(a, x)$, where $x$ is the result of the aggregation.
+
 \end{enumerate}
+
+\subsection{Matrix Multiplication}\label{subsec:matrix_multiplication}
 
 
 
