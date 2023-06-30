@@ -18,3 +18,164 @@ Let $n$ be large, but not so large that vector $\mathbf{v}$ cannot fit in memory
 
 \subsection{If the Vector $\mathbf{v}$ Cannot Fit in Memory}\label{subsec:vector-v-cannot-fit-in-memory}
 
+However, it is possible that the vector $\mathbf{v}$ is so large that it will not fit in its entirety in main memory. In this case, we can divide the matrix into vertical \textit{stripes} of equal width and divide the vector into an equal number of horizontal stripes, of the same height.
+
+\begin{figure}[H]
+\centering
+\scalebox{0.8}{
+\begin{tikzpicture}
+    % Matrix 
+    \draw (0,0) -- (5,0) -- (5,5) -- (0,5) -- cycle;
+    
+    \draw (1,0) -- (1,5); 
+    \draw (2,0) -- (2,5); 
+    \draw (3,0) -- (3,5); 
+    \draw (4,0) -- (4,5); 
+    
+    % Vector
+    \draw (7,0) -- (7.5,0) -- (7.5,5) -- (7,5) -- cycle;
+
+    \draw (7,1) -- (7.5,1);
+    \draw (7,2) -- (7.5,2);
+    \draw (7,3) -- (7.5,3);
+    \draw (7,4) -- (7.5,4);
+
+     % Text below the matrix
+    \node at (2.5,-0.5) {$M$};
+
+    % Text below the vector
+    \node at (7.25,-0.5) {$\mathbf{v}$};
+\end{tikzpicture}
+}
+\caption{Division of a matrix and vector into stripes}
+\label{fig:matrix-vector-stripes}
+\end{figure}
+
+
+Each Map task is assigned a chunk from one of the stripes of the matrix and gets the entire corresponding stripe of the vector. The Map and Reduce tasks can then act exactly as was described above for the case where Map tasks get the entire vector. We shall take up matrix-vector multiplication using MapReduce again in Chapter ~\ref{chap:link-analysis}.
+
+\subsection{Relational-Algebra Operations}\label{subsec:relational-algebra-operations}
+
+A good starting point for exploring applications of MapReduce is by considering the standard operations on relations. A \textit{relation} is a table with column headers called \textit{attributes}, rows of the relation are called \textit{tuples} and the sets of attributes of a relation is called its \textit{schema}.
+
+We often write an expression like $R(A_1, A_2, \dots, A_n)$ to say that a relation $R$ has the attributes $(A_1, A_2, \dots, A_n)$
+
+\begin{figure}[H]
+\centering
+\begin{tabular}{|c|c|}
+  \hline
+  \textit{From} & \textit{To} \\
+  \hline
+  \texttt{url1} & \texttt{url2} \\
+  \texttt{url1} & \texttt{url3} \\
+  \texttt{url2} & \texttt{url3} \\
+  \texttt{url3} & \texttt{url4} \\
+  \dots         & \dots         \\
+  \hline
+\end{tabular}
+\captionsetup{justification=centering}
+\caption{Relation \textit{Links} consists of the set of pairs of URL`s, \\ such that the first has one or more links to the second}
+\label{fig:relation-links}
+\end{figure}
+
+A relation can be stored as a file in a distributed file system. There are several standard operations on relations, often referred to as \textit{reletional algebra}, that used to implement queries. The relational-algebra operations are:
+
+Relation (represents a table): $R(A,B) \subseteq A \times B$
+
+\begin{enumerate}
+    \item \textit{Selection}: Apply a condition $C$ to each tuple in the relation and produce as output only those tuple that satisfy $C$. The result of this selection is denoted $\sigma_C(R)$.
+    \begin{equation*}
+        \begin{split}
+        \forall t\in R  & \xrightarrow{MAP} (t,t) \text{ if } c(t) \\
+               (t, (t)) & \xrightarrow{REDUCE} (t,t) 
+        \end{split}
+    \end{equation*}
+    \textbf{Map}: For each tuple $t$ in $R$, test if it satisfies $C$. If so, produce the key-value pair $(t, t)$.
+
+    \textbf{Reduce}: is the identity.
+
+    \item \textit{Projection}: For some subset $S$ of the attributes of the relation, produce from each tuple only the components for the attributes in $S$. The result of this projection is denoted $\pi_S(R)$. 
+    \begin{equation*}
+        \begin{split}
+                  \forall t\in R & \xrightarrow{MAP} (t',t') \\
+            (t', (t',\dots, t')) &\xrightarrow{REDUCE} (t',t')
+        \end{split}
+    \end{equation*}
+    \textbf{Map}: create a tuple $t'$ that contains only the attributes in $S$.
+
+    \textbf{Reduce}: for each key $t'$ produced by the Map, there will be ore or more key-value pairs $(t', t')$, so the Reduce function will remove the duplicates.
+
+    \item \textit{Union}, \textit{Intersection}, and \textit{Difference}: These operations are defined in the usual way.  
+    
+    \[
+    \begin{aligned}
+        \text{Union:}\quad &\begin{cases}
+            \begin{split}
+                \forall t\in R \xrightarrow{MAP} (t,t)\; &, \quad \forall t\in S \xrightarrow{MAP} (t,t) \\
+                (t, (t)) &\xrightarrow{REDUCE} (t,t)\\
+                (t, (t,t)) &\xrightarrow{REDUCE} (t,t)
+            \end{split}
+        \end{cases}\\[10pt]
+        \text{Intersection:}\quad &\begin{cases}
+            \begin{split}
+                \forall t\in R \xrightarrow{MAP} (t,t)\; &, \quad \forall t\in S \xrightarrow{MAP} (t,t) \\
+                (t, (t)) &\xrightarrow{REDUCE} \emptyset\\
+                (t, (t,t)) &\xrightarrow{REDUCE} (t,t)
+            \end{split}
+        \end{cases}\\[10pt]
+        \text{Difference:}\quad &\begin{cases}
+            \begin{split}
+                \forall t\in R \xrightarrow{MAP} (t, 'R')\; &, \quad \forall t\in S \xrightarrow{MAP} (t,'S') \\
+                (t, R) &\xrightarrow{REDUCE} (t,t)\\
+                (t, S) &\xrightarrow{REDUCE} \emptyset \\
+                (t, (R,S)) &\xrightarrow{REDUCE} \emptyset
+            \end{split}
+        \end{cases}
+    \end{aligned}
+    \]
+    Considering the Union:
+    \begin{itemize}
+        \item \textbf{Map}: Turn each input $t$ ubti a key-value pair $(t, t)$
+        \item \textbf{Reduce}: Associated with each key $t$ there will be either one or two values. Produce output $(t, t)$ ub either case. 
+    \end{itemize}
+
+    Considering the Intersection: 
+    \begin{itemize}
+        \item \textbf{Map}: Turn each input $t$ ubti a key-value pair $(t, t)$
+        \item \textbf{Reduce}: If key $t$ has value list $(t, t)$, then produce $(t, t)$, otherwise produce nothing.
+    \end{itemize}
+
+    Considering the Intersection: 
+    \begin{itemize}
+        \item \textbf{Map}: For a tuple $t$ in $R$, produce the key-value pair $(t', R')$. For a tuple $t$ in $S$, produce the key-value pair $(t, 'S')$.
+        \item \textbf{Reduce}: For each key $t$, if the associated value list is $(t', R')$, then produce $(t, t)$, otherwise produce nothing.
+    \end{itemize}
+
+\item \textit{Natural Join}: Given two realtions, compare each pair of tuples, one from each relation. If the tuples agree on all the attributes that are common to the two schemas, then produce a tuple that has components for each of the attributes in either schema and agrees with the two tuples on each attribute. If the tuples disagree on one or more shared attributes, then produce nothing from this pair of tuples. All \textit{equijoins} can be executed in the same manner. The natural join of $R(A,B)$ and $S(B,C)$ is denoted $R \bowtie S$. 
+    
+    \begin{equation*}
+        \begin{split}
+                                          \forall (a,b)\in R & \xrightarrow{MAP_R} (b,(a, 'R')) \\
+                                          \forall (b,c)\in S & \xrightarrow{MAP_S} (b, (c, 'S')) \\
+            (b, ((a_1,R),(c_1, S), (c_3, S),(a_2, R),\dots)) & \xrightarrow{REDUCE} 
+        \end{split}
+    \end{equation*}
+
+    % TODO 
+
+\item \textit{Grouping} and \textit{Aggregation}: Given a relation $R$, partition its tuples according to their values in one set of attributes $G$, called the \textit{grouping attributes}. The permitted aggregations are SUM, COUNT, AVG, MIN, and MAX, with the obvious meanings. We denote a grouping-and-aggregation operation on a relation $R$ by $\gamma_{X}(R)$, where $X$ is a list of element that are either.
+    \begin{itemize}
+        \item[(a)] A grouping attribute, or 
+        \item[(b)] An expression $\theta(A)$, where $A$ is an attribute and $\theta$ is an aggregation function.
+    \end{itemize}
+    The result of this operation is one tuple for each group, with components for each grouping attribute and for each aggregation.
+\end{enumerate}
+
+
+
+
+
+
+
+
+
