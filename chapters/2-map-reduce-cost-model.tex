@@ -195,11 +195,35 @@ Relation (represents a table): $R(A,B) \subseteq A \times B$
 
 \subsection{Matrix Multiplication}\label{subsec:matrix_multiplication}
 
+If $M$ is a matrix with element $m_{ij}$ in row $i$ and column $j$, and $N$ is a matrix with element $n_{jk}$ in row $j$ and column $k$, then the product $P = MN$ is the matrix $P$ with element $p_{ik}$ in row $i$ and column $k$, where
+
+\begin{equation*}
+    \begin{split}
+        p_{ik} = \sum_{j} m_{ij}n_{jk}
+    \end{split}
+\end{equation*}
+
+Obviously, the number of columns of $M$ must be equal to the number of rows of $N$, so the sum over $j$ makes sense. We could view matrix $M$ and $N$ as relations, $M(I, J, V)$ with tuples $(i, j, m_{ij})$ and $N(J, K, V)$ with tuples $(j, k, n_{jk})$. The product $MN$ is a natural join, $M(I, J, V) \bowtie N(J, K, V)$, having only attribute $J$ in common and produce tuples $(i, j, k, v, w)$ for each tuple $(i, j, v)$ in $M$ and each tuple $(j, k, w)$ in $N$. This five-component tuple represents the pair of matrix element $(m_{ij}, n_{ik})$ but we prefer to have a four-component tuple $(i, j, k, v \times w)$ because represents the product between $m_{ij}n_{jk}$.
+
+We can perform grouping using $I$ and $K$ as attributes and aggregation as the sum of $V \times W$, and we can implement matrix multiplication as two MapReduce operation.
+\\
+\\
+\textit{First implementation}:
 
 
+\begin{equation*}
+    \begin{split}
+                     \forall (i,k,a_{ik}) \in A & \xrightarrow{M_A} (k, (A,i,a_{ik}))\\
+                     \forall (k,j,b_{kj}) \in B & \xrightarrow{M_B} (k, (B,j,b_{kj}))\\  
+        (k, ((A,1,a_{1k}), \dots, (A,m,a_{mk})) & , (B,1,b_{k1}), \dots, (B,o,b_{ko})))
+    \end{split}
+\end{equation*}
 
 
-
+\begin{itemize}
+    \item \textbf{Map}: For each matrix element $m_{ij}$, produce the key value pair $(j, (M, i, m_{ij}))$ and $n_{jk}$, produce the key value pair $(j, (N, k, n_{jk}))$. $M$ and $N$ in the values are not the matrices but just labels to distinguish the two sources of tuples. 
+    \item \textbf{Reduce}: For each key $j$, look at the list of values. For each value that comes from $M$ and $N$, produce the key-value pair with key equal to $(i, k)$ and value equal to the product of these elements $m_{ij}n_{jk}$. 
+\end{itemize}
 
 
 
