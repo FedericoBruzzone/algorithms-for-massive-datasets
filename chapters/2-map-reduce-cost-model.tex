@@ -206,24 +206,55 @@ If $M$ is a matrix with element $m_{ij}$ in row $i$ and column $j$, and $N$ is a
 Obviously, the number of columns of $M$ must be equal to the number of rows of $N$, so the sum over $j$ makes sense. We could view matrix $M$ and $N$ as relations, $M(I, J, V)$ with tuples $(i, j, m_{ij})$ and $N(J, K, V)$ with tuples $(j, k, n_{jk})$. The product $MN$ is a natural join, $M(I, J, V) \bowtie N(J, K, V)$, having only attribute $J$ in common and produce tuples $(i, j, k, v, w)$ for each tuple $(i, j, v)$ in $M$ and each tuple $(j, k, w)$ in $N$. This five-component tuple represents the pair of matrix element $(m_{ij}, n_{ik})$ but we prefer to have a four-component tuple $(i, j, k, v \times w)$ because represents the product between $m_{ij}n_{jk}$.
 
 We can perform grouping using $I$ and $K$ as attributes and aggregation as the sum of $V \times W$, and we can implement matrix multiplication as two MapReduce operation.
-\\
-\\
-\textit{First implementation}:
-
-
+Let $N_c$ the number of columns of $N$ and $M_r$ the number of rows of $M$.
 \begin{equation*}
     \begin{split}
-                     \forall (i,k,a_{ik}) \in A & \xrightarrow{M_A} (k, (A,i,a_{ik}))\\
-                     \forall (k,j,b_{kj}) \in B & \xrightarrow{M_B} (k, (B,j,b_{kj}))\\  
-        (k, ((A,1,a_{1k}), \dots, (A,m,a_{mk})) & , (B,1,b_{k1}), \dots, (B,o,b_{ko})))
+        M=[m_{ij}]_{M_r \times X} \qquad N=[n_{jk}]_{X \times N_c} & \qquad P=MN=[p_{ik}]_{M_r \times N_c}\quad p_{ik} =\sum_{j=1}^X m_{ij}n_{jk}\\
+        (i, j, m_{ij}) & \in M(I,J,V)\\
+        (j, k, n_{jk}) & \in N(J,K,W)\\
+        M\bowtie N & (i,j,k, m_{ij}, n_{jk})
     \end{split}
 \end{equation*}
 
+\textit{First implementation}:
 
-\begin{itemize}
-    \item \textbf{Map}: For each matrix element $m_{ij}$, produce the key value pair $(j, (M, i, m_{ij}))$ and $n_{jk}$, produce the key value pair $(j, (N, k, n_{jk}))$. $M$ and $N$ in the values are not the matrices but just labels to distinguish the two sources of tuples. 
-    \item \textbf{Reduce}: For each key $j$, look at the list of values. For each value that comes from $M$ and $N$, produce the key-value pair with key equal to $(i, k)$ and value equal to the product of these elements $m_{ij}n_{jk}$. 
-\end{itemize}
+\begin{equation*}
+    \begin{split}
+                     \forall (i,j,m_{ij}) \in M & \xrightarrow{Map_M} (j, (M,i,m_{ik}))\\
+                     \forall (j,k,n_{jk}) \in N & \xrightarrow{Map_N} (j, (N,k,n_{jk}))\\  
+        (j, ((M,1,m_{1j}), \dots, (M,M_r,m_{M_rj})) & , (N,1,n_{j1}), \dots, (N,N_c,n_{jN_c})))
+    \end{split}
+\end{equation*}
 
+\textbf{Map}: For each matrix element $m_{ij}$, produce the key value pair $(j, (M, i, m_{ij}))$ and $n_{jk}$ produce the key value pair $(j, (N, k, n_{jk}))$. $M$ and $N$ in the values are not the matrices but just labels to distinguish the two sources of tuples. 
 
+\textbf{Reduce}: For each key $j$, look at the list of values. For each value that comes from $M$ and $N$, produce the key-value pair with key equal to $(i, k)$ and value equal to the product of these elements $m_{ij}n_{jk}$. 
 
+Now, we perform a grouping and aggregation by another MapReduce operation.
+
+\begin{equation*}
+    \begin{split}
+        ((i,j), (a_{ik} b_{kj})) & \xrightarrow{Map} ((i,j), (a_{ik} b_{kj}))\\
+        ((i,j), (a_{i1} b_{1j})) & \xrightarrow{Reduce} ((i,j), p_{ij}) \text{ where } p_{ij} \in P  
+    \end{split}
+\end{equation*}
+
+\textbf{Map}: This function is just the identity.  
+
+\textbf{Reduce}: For each key $(i, k)$, producethe sum of the list of values associated with this key. The result is the key-value pair with key $(i, k)$ and value equal to the product $p_{ik}$ where $p_{ik}$ is the value of the matrix $P = MN$ in row $i$ and column $k$.
+
+\textit{Second implementation}:
+
+We can perform matrix multiplication $P = MN$ in a \textbf{single MapReduce operation}. Let $N_c$ the number of columns of $N$ and $M_r$ the number of rows of $M$. 
+
+\begin{equation*}
+    \begin{split}
+        \forall m_{ij} \in M \xrightarrow{Map_M} ((i,k), (M,j,m_{ij})) \quad \forall \ k = 1, 2, \dots, N_c \\
+        \forall n_{jk} \in N \xrightarrow{Map_N} ((i,k), (N,j,n_{jk})) \quad \forall \ i = 1, 2, \dots, M_r \\ 
+        ((i,k), ((M, 1, m_{i1}),\dots, (M, X, m_{iX}), (N, 1, n_{1j}), \dots, (N, X, n_{Xk})) \xrightarrow{Reduce} ((i,k), p_{ik})
+    \end{split}
+\end{equation*}
+
+\textbf{Map}: For each matrix element $m_{ij}$, produce the key value pair $((i, k), (M, j, m_{ij}))$ and for each matrix element $n_{jk}$, produce the key value pair $((i, k), (N, j, n_{jk}))$.
+
+\textbf{Reduce}: Each key $(i, k)$ have an associated list of values $((M, j, m_{ij}), (N, j, n_{jk})) \ \forall \ j$. The reduce function needs to connect the two values with the same $j$, an easy way to do this step is sort by $j$ in two separate lists and the $j$-th element will have the third componenet $m_{ij}$ and $n_{jk}$, then we can compute the product $m_{ij}n_{jk}$ and sum over $j$.
