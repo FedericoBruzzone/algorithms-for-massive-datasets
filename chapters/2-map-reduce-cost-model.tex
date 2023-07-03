@@ -242,7 +242,8 @@ Now, we perform a grouping and aggregation by another MapReduce operation.
 \textbf{Map}: This function is just the identity.  
 
 \textbf{Reduce}: For each key $(i, k)$, producethe sum of the list of values associated with this key. The result is the key-value pair with key $(i, k)$ and value equal to the product $p_{ik}$ where $p_{ik}$ is the value of the matrix $P = MN$ in row $i$ and column $k$.
-
+\\
+\\
 \textit{Second implementation}:
 
 We can perform matrix multiplication $P = MN$ in a \textbf{single MapReduce operation}. Let $N_c$ the number of columns of $N$ and $M_r$ the number of rows of $M$. 
@@ -258,3 +259,48 @@ We can perform matrix multiplication $P = MN$ in a \textbf{single MapReduce oper
 \textbf{Map}: For each matrix element $m_{ij}$, produce the key value pair $((i, k), (M, j, m_{ij}))$ and for each matrix element $n_{jk}$, produce the key value pair $((i, k), (N, j, n_{jk}))$.
 
 \textbf{Reduce}: Each key $(i, k)$ have an associated list of values $((M, j, m_{ij}), (N, j, n_{jk})) \ \forall \ j$. The reduce function needs to connect the two values with the same $j$, an easy way to do this step is sort by $j$ in two separate lists and the $j$-th element will have the third componenet $m_{ij}$ and $n_{jk}$, then we can compute the product $m_{ij}n_{jk}$ and sum over $j$.
+
+
+\section{The communication cost model}\label{sec:communication-cost-model}
+
+The communication cost model is a model that allows us to estimate the communication cost of a MapReduce algorithm. The communication cost is the amount of data that is transferred between the mappers and the reducers. The communication cost is the most important factor in the performance of a MapReduce algorithm. 
+
+Imagine that an algorithm is implemented by an acyclic network of tasks. The \textit{communication cost} of a task is the size of the input to the task and the task can be measured in bytes. The \textit{communication cost of an algorithm} is the sum of the communication cost of all the tasks implementing that algorithm.
+
+We can explain and jusity the \textbf{importance of communication} cost as follows:
+\begin{itemize}
+    \item The algorithm execution by each task tends to be very simple.
+    \item The typical interconnect speed for a computing cluster is 1 Gbps, and it is slow compared to the speed of the CPU.
+    \item Even if a task executes at a compute node that has a copy of the chunk(s) on which the task operates, that chunk normally will be stored on disk, and the time taken to move the data into main memory may exceed the time needed to operate on the data once it is available in memory.
+\end{itemize}
+
+We might still ask why we \textbf{count only input size}, and not output size. The answare to this question involves two points:
+\begin{enumerate}
+    \item If the output of the one task $\tau$ is the input of another task, then the size of $\tau$'s output will be accounted for when measuring the input size for the receiving task.
+    \item The output is rarely large compared with the output with the input or the intermediate data produced by the algorithm. 
+\end{enumerate}
+
+An example of join operation:
+\begin{equation*}
+    \begin{split}
+        R(A,B) \bowtie S(B,C) \\
+        \forall (a,b) \in R \xrightarrow{M} (b, (a,R)) \\
+        \forall (b,c) \in S \xrightarrow{M} (b, (c,S)) \\
+        |R|=r, \qquad |S|=s \\
+        \text{Cost: } O(r+s)
+    \end{split}
+\end{equation*}
+
+\subsection{Wall-Clock Time}\label{subsec:wall-clock-time}
+
+While communication cost often influences our choice of algorithm to use in a cluster-computing environment, we must also be aware of the importance of \textit{wall-clock time}, the time it takes a parallel algorithm to finish.
+
+\subsection{Multiway Joins}\label{subsec:multiway-joins}
+
+To see how analyzing the communication cost can help us choose an algorithm in the cluster-computing environment, we can consider the problem of computing a multiway join. There is a general theory in which we:
+\begin{enumerate}
+    \item Select certain attributes of the realtions involved in the natural \textit{multi}-join to have their value hashed, each to some number of buckets.
+    \item Select the number of buckets for each of these attributes, subejct to the contraint that the product of the number for each attribute is $k$. 
+    \item Idetify each of the $k$ reducers with a vector of bucket numbers. These vectors have one component for each of the attributes selected in step (1).
+    \item Send tuples of each realtion to all those reducers where it might find tuples to join with. The given tuple $t$ will have values for some of the attributes selected at step (1), in this way we can apply the hash function(s) to those values to determine certain components of the vector that identifies the reducers. 
+\end{enumerate}
