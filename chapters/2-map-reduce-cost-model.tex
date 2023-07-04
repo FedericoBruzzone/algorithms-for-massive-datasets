@@ -23,29 +23,7 @@ However, it is possible that the vector $\mathbf{v}$ is so large that it will no
 \begin{figure}[H]
 \centering
 \scalebox{0.8}{
-\begin{tikzpicture}
-    % Matrix 
-    \draw (0,0) -- (5,0) -- (5,5) -- (0,5) -- cycle;
-    
-    \draw (1,0) -- (1,5); 
-    \draw (2,0) -- (2,5); 
-    \draw (3,0) -- (3,5); 
-    \draw (4,0) -- (4,5); 
-    
-    % Vector
-    \draw (7,0) -- (7.5,0) -- (7.5,5) -- (7,5) -- cycle;
-
-    \draw (7,1) -- (7.5,1);
-    \draw (7,2) -- (7.5,2);
-    \draw (7,3) -- (7.5,3);
-    \draw (7,4) -- (7.5,4);
-
-     % Text below the matrix
-    \node at (2.5,-0.5) {$M$};
-
-    % Text below the vector
-    \node at (7.25,-0.5) {$\mathbf{v}$};
-\end{tikzpicture}
+    \input figs/2-matrix-and-vector.tex
 }
 \caption{Division of a matrix and vector into stripes}
 \label{fig:matrix-vector-stripes}
@@ -153,7 +131,7 @@ Relation (represents a table): $R(A,B) \subseteq A \times B$
         \item \textbf{Reduce}: For each key $t$, if the associated value list is $(t', R')$, then produce $(t, t)$, otherwise produce nothing.
     \end{itemize}
 
-\item \textit{Natural Join}: Given two realtions, compare each pair of tuples, one from each relation. If the tuples agree on all the attributes that are common to the two schemas, then produce a tuple that has components for each of the attributes in either schema and agrees with the two tuples on each attribute. If the tuples disagree on one or more shared attributes, then produce nothing from this pair of tuples. All \textit{equijoins} can be executed in the same manner. The natural join of $R(A,B)$ and $S(B,C)$ is denoted $R \bowtie S$. 
+\item \textit{Natural Join} \label{item:natural-join}: Given two realtions, compare each pair of tuples, one from each relation. If the tuples agree on all the attributes that are common to the two schemas, then produce a tuple that has components for each of the attributes in either schema and agrees with the two tuples on each attribute. If the tuples disagree on one or more shared attributes, then produce nothing from this pair of tuples. All \textit{equijoins} can be executed in the same manner. The natural join of $R(A,B)$ and $S(B,C)$ is denoted $R \bowtie S$. 
     
     \begin{equation*}
         \begin{split}
@@ -300,7 +278,30 @@ While communication cost often influences our choice of algorithm to use in a cl
 To see how analyzing the communication cost can help us choose an algorithm in the cluster-computing environment, we can consider the problem of computing a multiway join. There is a general theory in which we:
 \begin{enumerate}
     \item Select certain attributes of the realtions involved in the natural \textit{multi}-join to have their value hashed, each to some number of buckets.
-    \item Select the number of buckets for each of these attributes, subejct to the contraint that the product of the number for each attribute is $k$. 
+    \item Select the number of buckets for each of these attributes, subejct to the contraint that the product of the number for each attribute is $k$.
     \item Idetify each of the $k$ reducers with a vector of bucket numbers. These vectors have one component for each of the attributes selected in step (1).
     \item Send tuples of each realtion to all those reducers where it might find tuples to join with. The given tuple $t$ will have values for some of the attributes selected at step (1), in this way we can apply the hash function(s) to those values to determine certain components of the vector that identifies the reducers. 
 \end{enumerate}
+Cosider the following example $R(A, B) \bowtie S(B, C) \bowtie T(C, D)$ and suppose that $R$, $S$, and $T$ have sizes $r$, $s$, and $t$, respectively. And let $p$ be the probability that:
+\begin{itemize}
+    \item An $R$-tuple and an $S$-tuple have the same value for attribute $B$.
+    \item An $S$-tuple and a $T$-tuple have the same value for attribute $C$.
+\end{itemize}
+If we join $R$ and $S$ first (see ~\ref{item:natural-join}), then the communication cost is $O(r+s)$ and the size of the intermediate join is $R \bowtie S$ is $prs$. When we join this result with $T$, the communication cost is $O(prs+t)$. The total communication cost is $O(r+s+prs+t)$. 
+
+\begin{figure}[H]
+\centering
+\scalebox{1}{
+    \input figs/2-3-way-join.tex
+}
+\caption{Sixteen reducers together perform a 3-way join}
+\label{fig:3-way-join}
+\end{figure}
+
+\newpage
+\begin{figure}[H]
+\centering
+\scalebox{1}{
+    \input figs/5-bowtie-web.tex
+}
+\end{figure}

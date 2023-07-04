@@ -62,22 +62,7 @@ There are many phenomena that relate two variables by a \textit{power law}, that
 \begin{figure}[H]
 \centering
 \scalebox{0.8}{
-\begin{tikzpicture}
-    % Axes
-    \draw[->] (0,0) -- (6,0) node[right] {$x$};
-    \draw[->] (0,0) -- (0,8) node[above] {$y$};
-    
-    % Ticks and labels on x-axis
-    \foreach \x/\label in {1/1, 2/10, 3/100, 4/1000, 5/10.000}
-        \draw (\x,0.1) -- (\x,-0.1) node[below] {\label};
-    
-    % Ticks and labels on y-axis
-    \foreach \y/\label in {1/1, 2/10, 3/100, 4/1000, 5/10.000, 6/100.000, 7/1.000.000}
-        \draw (0.1,\y) -- (-0.1,\y) node[left] {\label};
-    
-    % Dotted line
-    \draw[dotted] (0,7) -- (4,0);
-\end{tikzpicture}
+    \input figs/1-power-law.tex
 }
 \caption{A power law with a slope of $-2$}
 \label{fig:power-law}

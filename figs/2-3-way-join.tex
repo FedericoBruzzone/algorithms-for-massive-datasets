@@ -1,0 +1,52 @@
+\begin{tikzpicture}
+    % \draw[help lines] (-1,-1) grid (8,8);
+
+    % Matrix 
+    \draw (0,0) -- (4,0) -- (4,4) -- (0,4) -- cycle;
+    
+    \draw (1,0) -- (1,4); 
+    \draw (2,0) -- (2,4); 
+    \draw (3,0) -- (3,4); 
+
+    \draw (0,1) -- (4,1);
+    \draw (0,2) -- (4,2);
+    \draw (0,3) -- (4,3);
+
+    % Row indices
+    \node at (-0.5,0.5) {3};
+    \node at (-0.5,1.5) {2};
+    \node at (-0.5,2.5) {1};
+    \node at (-0.5,3.5) {0};
+
+    % Column indices at top
+    \node at (0.5,4.5) {0};
+    \node at (1.5,4.5) {1};
+    \node at (2.5,4.5) {2};
+    \node at (3.5,4.5) {3};
+
+
+    \draw (-3,1.2) -- (3.5,1.2);
+    \draw[-{Stealth}] (3.5, 1.2) -- (3.5, 1.5);
+    \draw[-{Stealth}] (2.5, 1.2) -- (2.5, 1.5);
+    \draw[-{Stealth}] (1.5, 1.2) -- (1.5, 1.5);
+    \draw[-{Stealth}] (0.5, 1.2) -- (0.5, 1.5);
+
+    \draw (1.2, 7) -- (1.2, 0.5);
+    \draw[-{Stealth}] (1.2, 0.5) -- (1.5, 0.5);
+    \draw[-{Stealth}] (1.2, 1.5) -- (1.5, 1.5);
+    \draw[-{Stealth}] (1.2, 2.5) -- (1.5, 2.5);
+    \draw[-{Stealth}] (1.2, 3.5) -- (1.5, 3.5);
+
+    \draw[-{Stealth}, red, thick] (5, 3) -- (1.8, 1.8);
+
+    \node[above right, red] at (4,3) {$h(S.B) = 2 \ \text{and} \ g(S.C) = 1$};
+    \node[right] at (1.2, 6.5) {$g(T.C) = 1$};
+    \node[below right] at (-3,1) {$h(R.B) = 2$};
+
+    \draw [red, thick, decorate,decoration={brace,amplitude=10pt},xshift=-5pt,yshift=0pt]
+    (-0.5,0) -- (-0.5,4) node [red,midway, xshift=-0.8cm] {$h(B)$};
+
+    \draw [red, thick, decorate,decoration={brace,amplitude=10pt},xshift=0pt,yshift=+5pt]
+    (0,4.5) -- (4,4.5) node [red,midway,yshift=+0.6cm] {$g(C)$};
+\end{tikzpicture}
+
