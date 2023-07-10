@@ -289,6 +289,8 @@ Cosider the following example $R(A, B) \bowtie S(B, C) \bowtie T(C, D)$ and supp
 \end{itemize}
 If we join $R$ and $S$ first (see ~\ref{item:natural-join}), then the communication cost is $O(r+s)$ and the size of the intermediate join is $R \bowtie S$ is $prs$. When we join this result with $T$, the communication cost is $O(prs+t)$. The total communication cost is $O(r+s+prs+t)$. 
 
+A three way to take this join is to use a single MapReduce job that joins the three relation at one time. 
+
 \begin{figure}[H]
 \centering
 \scalebox{1}{
