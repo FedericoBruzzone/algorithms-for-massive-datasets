@@ -289,8 +289,16 @@ Cosider the following example $R(A, B) \bowtie S(B, C) \bowtie T(C, D)$ and supp
 \end{itemize}
 If we join $R$ and $S$ first (see ~\ref{item:natural-join}), then the communication cost is $O(r+s)$ and the size of the intermediate join is $R \bowtie S$ is $prs$. When we join this result with $T$, the communication cost is $O(prs+t)$. The total communication cost is $O(r+s+prs+t)$. 
 
-A three way to take this join is to use a single MapReduce job that joins the three relation at one time. 
+A three way to take this join is to use a single MapReduce job that joins the three relation at one time. Suppose that we have $k$ reducers for this job. Pick numbers $b$ and $c$ representing the number of buckets into which we will hash $B$- and $C$-values, respectively. Let $h$ and $g$ be a hash function defined as follows: 
+\begin{equation*}
+    \begin{split}
+    h: B \rightarrow \{0, 1, \dots, b-1\} \\
+    g: C \rightarrow \{0, 1, \dots, c-1\} \\
+    \end{split}
+\end{equation*}
+We require that $bc = k$. The reducer corresponding to bucket pair $(i, j)$ is responsible for joining the tuples $R(u, v)$, $S(v, w)$, and $T(w, x)$, where $h(v) = i$ and $g(w) = j$. 
 
+As a result, the Map tasks that send tuples of $R$, $S$ and $T$ to the reducers that need them must send $R$- and $T$-tuples to more than one reducer. For an $S$-tuple $S(v, w)$, we know $B$ and $C$ values, so we can compute $h(v)$ and $g(w)$ and send the tuple to the reducer corresponding to bucket pair $(h(v), g(w))$. If we consider the $R$- and $T$-tuples, we know only the $B$- and $C$-values, respectively, so we can send the tuple to all reducers corresponding to bucket pairs $(h(v), j)$ and $(i, g(w))$, respectively. 
 \begin{figure}[H]
 \centering
 \scalebox{1}{
@@ -299,4 +307,8 @@ A three way to take this join is to use a single MapReduce job that joins the th
 \caption{Sixteen reducers together perform a 3-way join}
 \label{fig:3-way-join}
 \end{figure}
+\noindent Notice that these three tuples join, and they meet at exactly one reducer, the reducer for key (2, 1).\\
+\\
+Now, suppose that the sizes of $R$, $S$, and $T$ are different, and let $r$, $s$, and $t$ be the sizes of $R$, $S$, and $T$, respectively. If we hash $B$-values into $b$ buckets and $C$-values into $c$ buckets, where $bc = k$, then the total communication cost to send tuples to the reducers is $O(r+s+t)$.  We shall use the of Lagrangean multipliers to find the palce where the function $s + cr + bt - \lambda(bc - k)$ has derivatives with respect to $b$ and $c$ equal to $0$. That is, we must solve the equations $r - \lambda c = 0$ and $t - \lambda b = 0$. Since $r = \lambda b$ and $t = \lambda c$. Since $r = \lambda b$ and $t = \lambda c$, we may multiply corresponding sides of these equations to get $rt = \lambda^2 bc$. Since $bc = k$, we get $rt = \lambda^2 k$, or $\lambda = \sqrt{rt/k}$. Thus, $b = \sqrt{r/k}$ and $c = \sqrt{t/k}$. 
 
+If we substitute these values into the formula $s + cr + bt$, we get $s + 2\sqrt{rtk}$. This is the communication cost for the Reduce tasks, to which we must add the communication cost for the Map tasks, which is $O(r + s + t)$. Thus, the total communication cost is $O(r + 2s + t + 2\sqrt{rtk})$.

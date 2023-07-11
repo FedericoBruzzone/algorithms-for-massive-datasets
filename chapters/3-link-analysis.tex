@@ -1,0 +1,78 @@
+\chapter{Link Analysis}\label{chap:link-analysis}
+
+\section{Definition of PageRank}\label{sec:def-pagerank}
+
+PageRank is a function that assigns a real number to each page in the Web. There is not one fixed algorithm for assignment of PageRank.
+
+In general, we can define the \textit{transition matrix of the Web} to describe what happens to random surfers after one step. This matrix $M_{n \times n}$ where $n$ is the number of pages. The element $m_{ij}$ has value $1/k$ if page $j$ has $k$ arcs out, and one of them is to page $i$. Otherwise, $m_{ij} = 0$.
+
+The probability distribution for the location of a random surfer can be described by a column vector whose $j$-th component is the probability that the surfer is at page $j$. This probability is the (idealized) PageRank function.
+
+Suppose we start a random surfer $A$ at any of the $n$ pages of the Web with equal probability. Then the initial vector $\textbf{v}_0 = [1/n]_n$, if $M$ is the matrix of the web, the distribution of $A$ is $M^s\textbf{v}_0$ for $s = 1, 2, \ldots$ steps. To see why multiplying a distribution vector $\textbf{v}$ by $M$ gives the distribution $\textbf{x} = M\textbf{v}$ at the next step.
+The probability that $A$ will be at node $i$ at the next step, is (ancient theory of \textit{Markov processes}).
+\begin{equation*}
+    \begin{split}
+        \mathbb{P} [\textbf{x}_i]  & = \sum_{j} m_{ij}\textbf{v}_j\\
+        \text{where } m_{ij} & = \mathbb{P}[A \text{ goes from } j \text{ to } i \text{ at the next step}] \\
+        \textbf{v}_j & = \mathbb{P}[A \text{ is at } j \text{ at the previous step}] \\
+    \end{split}
+\end{equation*}
+
+The limiting distribution $\textbf{v}$ that satisfies $\textbf{v} = M\textbf{v}$ is called the \textit{stationary distribution} of the Markov process. It is the distribution that the $A$ will eventually reach, no matter where he starts. In other words, the limiting $\textbf{v} = \lambda M \textbf{v}$ is an eigenvector of $M$ with eigenvalue $\lambda$. Remember that $M$ is a stochastic matrix, so $\sum_{j} m_{ij} = 1 \ \forall i$, and the eigenvalue associated to principal eigenvector is  $\lambda = 1$.
+Recall that the intuition behind PageRank is that the more likely a surfer is to be at a page, the more important the page is.
+
+\section{Structure of the Web}\label{sec:def-pagerank}
+
+It would very nice if the nice if the Web were strongly connected, it is not in practice. An early study of the Web found it to have the structure shown in Fig. \ref{fig:bowtie-web}. There was a large strongly connected component (SCC), but there were several other portions that were almost as large.
+
+\begin{enumerate}
+    \item \textit{in-component}, consist of pages that can reach the SCC, but cannot be reached from the SCC.
+    \item \textit{out-component}, consist of pages that can be reached from the SCC, but unable to reach the SCC.
+    \item \textit{tendrils}, which are of two types. Some tendrils consist of pages reachable from the in-component but not able to reach the in-component. The other tendrils can reach the out-component, but are not reachable from the out-component. 
+\end{enumerate}
+
+
+\begin{figure}[H]
+\centering
+\scalebox{1}{
+    \input figs/3-bowtie-web.tex
+}
+\caption{The ``bowtie'' picture of the Web}
+\label{fig:bowtie-web}
+\end{figure}
+
+\begin{itemize}
+    \item[(a)] \textit{Tuples}, which are pages from the in-component and able to reach the out-component, but unable to reach the SCC or be reached from the SCC.    
+    \item[(b)] Isolated, components that are unreachable from the large components and unable to reach those components.
+\end{itemize}
+
+There are really two problems we need to avoid. First is the dead end, a page that has no links out. The second problem is groups of pages that all have outlinks but they never link to any other pages. 
+
+\section{Avoiding Dead Ends}\label{sec:avoid-dead-ends}
+
+Recall that a page with no link out is called a dead end. If we allow dead ends, the transition matrix of the web is no longer stochastic. If we compute $M^i \textbf{v}$ for increasing powers of a substoachastic matrix $M$, then some or all of the components of the vector go to $0$.
+
+There are two approaches to dealing with dead ends.
+
+\begin{enumerate}
+    \item We can drop the dead ends from the graph, and also drop their incoming arcs. Doing so may create more dead ends, which also have to be dropped, recursively. 
+    \item We can modify the process by which random surfers are assumed to move about the Web. This method, which we refer to as ``taxation'', also solves the problem of spider traps. 
+\end{enumerate}
+
+In order to compute the PageRank with dead ends, using the first method (\textbf{drop dead ends}),
+\begin{itemize}
+    \item Drop the dead ends from the graph, and also drop their incoming arcs.  
+    \item Compute the PageRank of the remaining nodes, using the method described in the previous section.
+    \item Compute the PageRank of the last removed dead ends $x$ as follows:
+        \begin{equation*}
+            \begin{align}
+                PR_{dead}(x) & = \sum_{v \in G \ : \ (v, x) \in E}{PR(v) \frac{1}{\textbf{deg}(v)}} \\
+                \text{where } & \textbf{deg}(v) \text{ is the out-degree of } v; \\
+                              & G \text{ is the graph after removing dead ends}; \\
+                              & PR(v) \text{ is the PageRank of } v \text{ in } G.
+            \end{align}
+        \end{equation*}
+        and continue recursively for all removed dead ends.
+\end{itemize}
+
+
