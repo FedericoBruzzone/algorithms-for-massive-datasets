@@ -64,15 +64,14 @@ In order to compute the PageRank with dead ends, using the first method (\textbf
     \item Drop the dead ends from the graph, and also drop their incoming arcs.  
     \item Compute the PageRank of the remaining nodes, using the method described in the previous section.
     \item Compute the PageRank of the last removed dead ends $x$ as follows:
-        \begin{equation*}
-            \begin{align}
+        \begin{equation}
+            \begin{split}
                 PR_{dead}(x) & = \sum_{v \in G \ : \ (v, x) \in E}{PR(v) \frac{1}{\textbf{deg}(v)}} \\
                 \text{where } & \textbf{deg}(v) \text{ is the out-degree of } v; \\
                               & G \text{ is the graph after removing dead ends}; \\
                               & PR(v) \text{ is the PageRank of } v \text{ in } G.
-            \end{align}
-        \end{equation*}
+            \end{split}
+        \end{equation}
         and continue recursively for all removed dead ends.
 \end{itemize}
-
 
