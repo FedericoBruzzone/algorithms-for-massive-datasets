@@ -1,6 +1,19 @@
 # Algorithms for Massive Datasets
 
-This repository contains a LaTeX file that generates a PDF document comprising comprehensive notes for the course "Algorithms for Massive Datasets" taught by [Dario Malchiodi](https://malchiodi.di.unimi.it/teaching/AMD/2022-23/it) based on the content from the book [Mining of Massive Datasets](https://www.amazon.it/Mining-Massive-Datasets-Jure-Leskovec/dp/1108476341/ref=sr_1_1?__mk_it_IT=%C3%85M%C3%85%C5%BD%C3%95%C3%91&crid=3AYGHXIEN3DLF&keywords=Mining+of+Massive+Datasets&qid=1687992601&sprefix=mining+of+massive+datasets%2Caps%2C168&sr=8-1). The PDF document serves as a reference guide and study material for the course. However, please note that we do not assume any responsibility for the correctness of the notes provided.
+This repository contains a LaTeX file that generates a PDF document comprising comprehensive notes for the course "Algorithms for Massive Datasets" taught by [Dario Malchiodi](https://malchiodi.di.unimi.it/teaching/AMD/2022-23/it) based on the content from the book [Mining of Massive Datasets](http://www.mmds.org/). The PDF document serves as a reference guide and study material for the course. However, please note that we do not assume any responsibility for the correctness of the notes provided.
+
+# How compile 
+
+Add the files in `./style` folder to your `TEXMFHOME/tex/latex` (how to know TEXMFHOME: `kpsewhich -var-value TEXMFHOME`).
+And run `sudo texhash` or `sudo mktexlsr` or `sudo texconfig`, in the last case you should choose `REHASH` option and then `exit`. 
+
+**Compile**
+
+`latexmk --shell-escape ./algorithms-for-massive-datasets.tex` 
+
+or
+
+`pdflatex --shell-escape ./algorithms-for-massive-datasets.tex` 
 
 # Using the Notes
 To make the most of these notes, you can:
