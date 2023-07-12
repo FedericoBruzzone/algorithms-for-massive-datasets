@@ -165,7 +165,110 @@ Since we are representing transition matrices in the special way described in Se
 
 \subsection{Other Efficient Approaches to PageRank Iteration}\label{subsec:other-efficient-approaches-pagerank-iteration}
 
-The algorithm discussed in Section \ref{subsec:pagerank-iteration-mapreduce} is not the only way to compute PageRank using MapReduce. Recall that the algorithm of Section \ref{subsec:pagerank-iteration-mapreduce} uses $k^2$ processors, assuming all Map operations are executed in parallel. 
+The algorithm discussed in Section \ref{subsec:pagerank-iteration-mapreduce} is not the only way to compute PageRank using MapReduce. Recall that the algorithm of Section \ref{subsec:pagerank-iteration-mapreduce} uses $k^2$ processors, assuming all Map operations are executed in parallel. We can assign all the blocks in one row of blocks to a single Map task, and thus reduce the number of Map tasks to $k$. We can read the block in a row of blocks one-at-a-time, so the matrix does not consume a significant amount of main-memory. At the same time that we read $M_{ij}$, we must read the vector stripe $\textbf{v}_j$. As a result, each of the $k$ Map tasks reads the entire vecotr $\textbf{v}$, along with $1/k$-th of the matrix.
 
-\mcomment{comment}
+\begin{figure}[H]
+\centering
+\begin{tabular}{|c|c|c|}
+  \hline
+  \textit{Source} & \textit{Degree} & \textit{Destinations} \\
+  \hline
+  \textit{A} & \textit{3} & \textit{B} \\
+  \textit{B} & \textit{2} & \textit{A} \\
+  \hline
+\end{tabular}
+\captionsetup{justification=centering}\\
+\addvspace{1em}
+\textrm{(a) Representation of $M_{11}$ connecting A and B to B and C}
 
+\addvspace{2em}
+\begin{tabular}{|c|c|c|}
+  \hline
+  \textit{Source} & \textit{Degree} & \textit{Destinations} \\
+  \hline
+  \textit{C} & \textit{1} & \textit{A} \\
+  \textit{D} & \textit{2} & \textit{B} \\
+  \hline
+\end{tabular}
+\captionsetup{justification=centering}\\
+\addvspace{1em}
+\textrm{(b) Representation of $M_{12}$ connecting C and D to A and B}
+
+\addvspace{2em}
+\begin{tabular}{|c|c|c|}
+  \hline
+  \textit{Source} & \textit{Degree} & \textit{Destinations} \\
+  \hline
+  \textit{A} & \textit{3} & \textit{C, D} \\
+  \textit{B} & \textit{2} & \textit{D} \\
+  \hline
+\end{tabular}
+\captionsetup{justification=centering}\\
+\addvspace{1em}
+\textrm{(c) Representation of $M_{21}$ connecting A and B to C and D}
+
+\addvspace{2em}
+\begin{tabular}{|c|c|c|}
+  \hline
+  \textit{Source} & \textit{Degree} & \textit{Destinations} \\
+  \hline
+  \textit{D} & \textit{2} & \textit{C} \\
+  \hline
+\end{tabular}
+\captionsetup{justification=centering}\\
+\addvspace{1em}
+\textrm{(d) Representation of $M_{22}$ connecting C and D to C and D}
+
+\caption{Sparse representation of the blocks of a matrix}
+\label{fig:sparse-representation-blocks-matrix}
+\end{figure}
+
+The algorithm is the same as the one described in Section \ref{subsec:pagerank-iteration-mapreduce}.But the advantage of this approach is that each Map task can combine all the terms for the portion $\textbf{v}'_i$ for which it is responsible.
+
+\section{Topic-Sensitive PageRank}\label{sec:topic-sensitive-pagerank}
+
+We can improve the quality of the results of PageRank weighting certain pages more heavily because of their topic. In the next section, we shall see how the topic-sensitive idea can also be applied to negate the effects of a new kind of spam, called ``link spam'', that has developed to try to fool the PageRank algorithm. The \textit{topic-sensitive PageRank} approach creates one vector for each of some small number of topics, biasing the PageRank to favor pages of that topic.       
+
+\subsection{Biased Random Walks}\label{subsec:biased-random-walks}
+
+Suppose we have identified some pages that represent a topic such as ``sports''. To create a topic-sensitive PageRank for sports, we can arrange that the random surfers are introduced only to a random sports page, rather than to a random page of any kind. The intuition is that pages linked to by sports pages are themselves likely to be sports pages.
+
+The mathematical formulation for the iteration that yields topic-sensitive PageRank is similar to the equation we used for general PageRank. The only difference is how we add the new surfers. Suppose $S$ is a set of integers consisting of the consisting of the row / column number for the pages we have identified as belonging to a certain topic (called the \textit{teleport set}). Let $\textbf{e}_S$ be a vector that has 1 in the components in $S$ and $0$ in other components. Then the \textit{topic-sensitive PageRank} for $S$ is the limit of the iteration
+\begin{equation*}\label{eq:topic-sensitive-pagerank}
+    \textbf{v}' = \beta M \textbf{v} + (1 - \beta) \frac{\textbf{e}_S}{|S|}
+\end{equation*}
+
+Hence, as usual, $M$ is the transition matrix of the Web, and $|S|$ is the size of set $S$.
+
+\subsection{Using Topic-Sensitive PageRank}\label{subsec:using-topic-sensitive-pagerank}
+
+In order to integrate topic-sensitive PageRank into a search engine, we must:
+\begin{enumerate}
+    \item Decide on the topis for which we will create specialized PageRank vectors.
+    \item Pick a teleport set for each of these topics, and compute the topic-sensitive PageRank vector.
+    \item Find a way of determining the set of topic that are most relevant.
+    \item Use the PageRank vectors to order the results of a query.
+\end{enumerate}
+
+\noindent We have mentioned one way of selecting the topic set: use the top-level topics of the Open Directory.
+
+The third step is probably the trickiest. Some possible approaches are:
+\begin{itemize}
+    \item[(a)] Allow the user to specify the topic.
+    \item[(b)] Infer the topic(s) by the words that appear in the Web pages recently serched by the user. See \ref{subsec:inferring-topics-from-words}.
+    \item[(c)] Infer the topic(s) by information about the user.
+\end{itemize}
+
+\subsection{Inferring Topics from Words}\label{subsec:inferring-topics-from-words}
+
+Suffice it to say that topics are characterized by words that appear surprisingly often in documents on that topic. 
+
+If we examine the entire Web, or a sample, we can get the frquency of each word. In making this judgment, we must be careful to avoid some extremely rare word that appears in the sports sample with relatively higher frequency.  
+
+Once we have identified a large collection of words that appear much more frequently for all topics, we can examine other pages and classify them according to the topic that has the highest frequency of the words in the page.
+
+Suppose that $S_1, S_2, \ldots, S_k$ are the sets of words that have been determined to be characteristic of each of the topics on our list. Let $P$ be the set of words that appear in a given page $P$. Compute the Jaccard similarity between $P$ and each of the sets $S_i$. Classify $P$ as belonging to the topic $S_i$ for which the Jaccard similarity is largest.
+
+\section{Link Spam}\label{sec:link-spam}
+
+\mcomment{187 book or 205 pdf}
