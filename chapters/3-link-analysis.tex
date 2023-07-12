@@ -59,7 +59,19 @@ There are two approaches to dealing with dead ends.
     \item We can modify the process by which random surfers are assumed to move about the Web. This method, which we refer to as ``taxation'', also solves the problem of spider traps. 
 \end{enumerate}
 
+\subsection{Recursive deletion of dead ends}\label{subsec:recursive-deletion-dead-ends}
+
 In order to compute the PageRank with dead ends, using the first method (\textbf{drop dead ends}),
+
+\begin{figure}[H]
+\centering
+\scalebox{1}{
+    \input figs/3-graph-two-dead-ends.tex
+}
+\caption{A graph with two levels of dead ends}
+\label{fig:graph-two-dead-ends}
+\end{figure}
+
 \begin{itemize}
     \item Drop the dead ends from the graph, and also drop their incoming arcs.  
     \item Compute the PageRank of the remaining nodes, using the method described in the previous section.
@@ -75,3 +87,82 @@ In order to compute the PageRank with dead ends, using the first method (\textbf
         and continue recursively for all removed dead ends.
 \end{itemize}
 
+\begin{figure}[H]
+\centering
+\scalebox{1}{
+    \input figs/3-graph-reduced-dead-ends.tex
+}
+\caption{The reduced graph with no dead ends}
+\label{fig:graph-reduced-no-dead-ends}
+\end{figure}
+
+\subsection{Spider traps and Taxation}\label{subsec:spider-traps-taxation}
+
+A spider trap is a set of nodes with no dead ends but no arcs out. An example of a transition matrix representing the Fig. \ref{fig:graph-spider-trap} with a single spider trap is:
+\begin{equation*}
+    M = 
+    \begin{bmatrix}
+        1 & 1/2 & 0 & 0 \\
+        1/3 & 0 & 0 & 1/2 \\
+        1/3 & 0 & 1 & 1/2 \\
+        1/3 & 1/2 & 0 & 0
+    \end{bmatrix}
+\end{equation*}
+
+The problem in the following example is that the spider trap is absorbing. Once the surfer enters the spider trap, he can never leave.
+
+\begin{figure}[H]
+\centering
+\scalebox{1}{
+    \input figs/3-graph-spider-trap.tex
+}
+\caption{A graph with a one-node spider trap}
+\label{fig:graph-spider-trap}
+\end{figure}
+
+To avoid this problem, we can modify the calculation of PageRank by adding a small probability $\beta$ that the surfer will jump to a random page. We compute the new vector estimate of PageRanks $\textbf{v}'$ as follows: 
+\begin{equation}\label{eq:taxation}
+    \textbf{v}' = \beta M \textbf{v} + (1 - \beta) \textbf{e} / n
+\end{equation}
+
+where $\beta$ is a chosen constant, usually in the range $0.8$ to $0.9$, $\textbf{e}$ is a vector of all $1$'s, and $n$ is the number of nodes in the graph. The term $\beta M \textbf{v}$ represent the case where, with probability $\beta$ a random surfer will follow a link out of the current page. The term $(1 - \beta) \textbf{e} / n$ represents the case where, with probability $1 - \beta$, the surfer will jump to a random page.
+
+\section{Efficient Computation of PageRank}\label{sec:efficient-computation-pagerank}
+
+To compute the PageRank for a large graph representing the Web, we have to perform a matrix-vector multiplication on the order of $50$ times, until the vector is close to unchanged at one interation. There are basically two issues:
+\begin{itemize}
+    \item The transition matrix of the Web $M$ is very sparse. We want to take to represent the matrix by its non-zero elements.
+    \item We may not be using MapReduce, or for efficient reason we may wish to use a combiner with the Map tasks to reduce the amount of data.
+\end{itemize}
+
+\subsection{Representing transition matrix}\label{subsec:representing-transition-matrix}
+
+The proper way to represent any sparse matrix is to list the locations of the nonzero entries and their values. We use $4$-byte integers for coordinates of an element and an $8$-byte double-precision number for the value, so the total size is $16$-bytes per nonzero element. The space required is $O(n)$, where $n$ is the number of nonzero elements.
+
+To store a transition matrix using less space, we can thus represent a column by one integer for the out-degree, and one integer per nonzero entry in that column, giving the row number where that entry is located. Thus, we need slightly more than 4 bytes per nonzero entry to represent a transition matrix.
+
+\subsection{PageRank Iteration Using MapReduce}\label{subsec:pagerank-iteration-mapreduce}
+
+One iteration of the PageRank algorithm involves taking an estimated PageRank vector $\textbf{v}$ and computing the next estimate $\textbf{v}'$ using Eq. \ref{eq:taxation}. 
+If $n$ is small enough, we can compute $\textbf{v}'$ in memory and then write it out to a file. If $n$ is large, as it is for the Web, we can use MapReduce to compute $\textbf{v}'$ dividing $M$ into vertical stripes and $\textbf{v}$ into horizontal stripes. This method is not adequate because we are assuming that $\textbf{v}$ cannot fit in memory, and $\textbf{v}'$, that is the product between $M$ and $\textbf{v}$, has the same size as $\textbf{v}$, so it cannot fit in memory either.
+
+An alternative strategy is based on partitioning $M$ into $k^2$ blocks, while $\textbf{v}$ are stil partitioned into $k$ stripes.
+
+\begin{figure}[H]
+\centering
+\scalebox{1}{
+    \input figs/3-partitioned-matrix.tex
+}
+\caption{Partitioning a matrix into square blocks}
+\label{fig:partitioned-matrix}
+\end{figure}
+
+In this method, we use $k^2$ Map tasks. Each task gets one block of $M$ denote as $M_{ij}$ and one stripe of the vecor $\textbf{v}$, which must be $\textbf{v}_j \ \forall \ k \in  i$. Note that $\textbf{v}$ is trasmitted $k$ times and each block of $M$ only once.
+
+The advantage of this approach is that we can keep the $j$-th stripe of $\textbf{v}'$ and $\textbf{v}$ in memory while we process $M_{ij}$\\
+\\
+Since we are representing transition matrices in the special way described in Section \ref{subsec:representing-transition-matrix}, we need to consider how the block of Fig. \ref{fig:partitioned-matrix} is represented. For each block, we need data abould all those columns that have at least one nonzero entry within the block. If $k$ is large, then most columns will have nothing in most blocks of its stripe. That, For a given block, we not only have to list those rows that have a nonzero entry for that column, but we must repeat the out-degree for the node represented by the column. That observation upper bounds the space needed to store the blocks of a stipe at twice the space needed to store all the stipe. 
+
+\subsection{Other Efficient Approaches to PageRank Iteration}\label{subsec:other-efficient-approaches-pagerank-iteration}
+
+The algorithm discussed in Section \ref{subsec:pagerank-iteration-mapreduce} is not the only way to compute PageRank using MapReduce. Recall that the algorithm of Section \ref{subsec:pagerank-iteration-mapreduce} uses $k^2$ processors, assuming all Map operations are executed in parallel.

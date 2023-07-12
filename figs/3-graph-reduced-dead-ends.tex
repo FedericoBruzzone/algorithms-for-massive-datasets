@@ -1,0 +1,21 @@
+\begin{tikzpicture}
+\begin{scope}[every node/.style={circle,thick,draw}]
+    \node (A) at (0,0) {A};
+    \node (B) at (3,0) {B};
+    \node (D) at (3,-3) {D};
+\end{scope}
+
+\begin{scope}[>={Stealth[black]},
+              % every node/.style={fill=white,circle},
+              every edge/.style={draw=red,very thick}]
+    \path [->] (A) edge node {} (B);
+    \path [->] (A) edge node {} (D);
+    
+    \path [->] (B) edge[bend right=60] node {} (A); 
+    \path [->] (B) edge[bend left=60] node {} (D); 
+    
+    \path [->] (D) edge node {} (B);
+   
+
+\end{scope}
+\end{tikzpicture}

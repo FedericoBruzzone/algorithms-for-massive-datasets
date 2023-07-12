@@ -1,0 +1,26 @@
+
+\begin{tikzpicture}
+\begin{scope}[every node/.style={circle,thick,draw}]
+    \node (A) at (0,0) {A};
+    \node (B) at (3,0) {B};
+    \node (C) at (0,-3) {C};
+    \node (D) at (3,-3) {D};
+\end{scope}
+
+\begin{scope}[>={Stealth[black]},
+              % every node/.style={fill=white,circle},
+              every edge/.style={draw=red,very thick}]
+    \path [->] (A) edge node {} (B);
+    \path [->] (A) edge node {} (D);
+    \path [->] (A) edge node {} (C);
+    
+    \path [->] (B) edge[bend right=60] node {} (A); 
+    \path [->] (B) edge[bend left=60] node {} (D); 
+    
+    \path [->] (D) edge node {} (B);
+    \path [->] (D) edge node {} (C);
+
+    \path [->] (C) edge [out=270,in=180,looseness=8] node[above] {} (C);
+
+\end{scope}
+\end{tikzpicture}
