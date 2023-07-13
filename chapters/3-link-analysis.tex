@@ -271,4 +271,42 @@ Suppose that $S_1, S_2, \ldots, S_k$ are the sets of words that have been determ
 
 \section{Link Spam}\label{sec:link-spam}
 
-\mcomment{187 book or 205 pdf}
+The techniques for artificially increasing the PageRank of a page are collectively called \textit{link spam}.
+
+\subsection{Architecture of a Spam Farm}\label{subsec:architecture-spam-farm}
+
+\begin{figure}[H]
+\centering
+\scalebox{0.6}{
+    \input figs/3-web-for-spammers.tex
+}
+\caption{The Web from the point of view of the link spammer}
+\label{fig:web-for-spammers}
+\end{figure}
+
+
+
+A collection of pages purpose is to increas the PageRank of a certain page or pages is called a \textit{spam farm}. Fig. \ref{fig:web-for-spammers} show the simplest form of spam farm. From the point of view of the spammers, the Web is divided into three parts:
+
+\begin{enumerate}
+    \item \textit{Inaccessible pages}: most of the Web, which is not accessible to the spammers.
+    \item \textit{Accessible pages}: accessible to the spammers, but not controlled by them.
+    \item \textit{Own pages}: pages that are controlled by the spammers.
+\end{enumerate}
+
+The spam farm consist of the spammers's own pagas, organized in a special way as seen on the right side of Fig. \ref{fig:web-for-spammers} and some links from accessible pages to the spammer's pages. Without some links from the outside, the spam farm would be useless, since it would not even be crawled by a tipical search engine.
+
+In the spam farm, there is a \textit{target page} $t$, at which the spammer attempts to place as much PageRank as possible. The supporting pages prevent the target page from being an isolated node.
+
+\subsection{Analysis of a Spam Farm}\label{subsec:analysis-spam-farm}
+
+Suppose that PageRank is computed using a taxation parameter $\beta$, that is the fraction of a page's PageRank that is distributed to the pages it links to. Let $n$ be the number of pages in the Web (including $m$ supporting pages and the target page $t$). Let $x$ (th e amount of PageRank of the accessible pages) be the sum over all accessible pages $p$ with a link to $t$ of the PageRank of $p \beta$ divided by the number of successors of $p$. Finally, let $y$ the unknown PageRank of the target page $t$.
+
+The PageRank of each supporting page is
+\begin{equation*}
+        \beta \frac{y}{m} & + (1 - \beta) / n
+\end{equation*}
+
+Where $\beta \frac{y}{m}$  represent the contribuion from $t$ and $(1 - \beta) / n$ is the supporting page's share of the $(1 - \beta)$ of the PageRank that is distributed uniformly to all pages.
+
+
