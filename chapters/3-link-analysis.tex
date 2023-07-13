@@ -309,4 +309,47 @@ The PageRank of each supporting page is
 
 Where $\beta \frac{y}{m}$  represent the contribuion from $t$ and $(1 - \beta) / n$ is the supporting page's share of the $(1 - \beta)$ of the PageRank that is distributed uniformly to all pages.
 
+Now, we can compute the PageRank $y$ of target page $t$. Its PageRank comes from three sources:
+\begin{enumerate}
+    \item Contribution $x$ from outside.
+    \item $\beta$ times the PageRank of every supporting page:
+    \begin{equation*}
+        \beta \left(\beta \frac{y}{m} + (1 - \beta) / n\right)
+    \end{equation*}
+    \item $(1 - \beta)/n$ is negligible and will be dropped to simplify the analysis.
+\end{enumerate}
 
+\noindent From (1) and (2) we have:
+\begin{equation*}
+    \begin{split}
+        y & = x + \beta m \left(\beta \frac{y}{m} + \frac{(1 - \beta)}{n}\right) \\
+          & = x + \beta^2 y + \beta (1 - \beta) \frac{m}{n}\\
+          & = \frac{x}{1 - \beta^2} + \frac{\beta (1 - \beta)}{1 - \beta^2} \frac{m}{n} \qquad \text{ solving for } y \\
+          & = \frac{x}{1 - \beta^2} + c \frac{m}{n} \qquad \text{where } c = \frac{\beta}{(1 + \beta)}   
+\end{split}
+\end{equation*}
+
+\subsection{Combating Link Spam}\label{subsec:combating-link-spam}
+
+It has become essential for search engines to detect and eliminate link spam. The first approach is to identify structure such as that shown in Fig. \ref{fig:web-for-spammers} and eliminate it. This is not easy, because the spammers can disguise the structure of their spam farm. In the second approach a search engine can modify the PageRank to lower the rank of link spam pages. 
+\begin{itemize}
+    \item \textit{TrustRank}: a variation of topic-sensisitve PageRank.
+    \item \textit{Spam mass}, a calculation that identifies the pages that are likely to be spamm and allow the search engine to lower their PageRank or eliminate them.
+\end{itemize}
+
+\subsection{TrustRank}\label{subsec:trust-rank}
+
+TrustRank is topic-sensitive PageRank, where the ``topic'' is a set of pages believed to be not spam. The theory is that while a spam page might easily be made to link to a trustworthy page, it is unlikely that a trustworthy page would link to a spam page.
+
+To implement TrustRank, we need to develop a suitable teleport set of trustworthy pages. Two approaches that have been tried are:
+
+\begin{enumerate}
+    \item Let humans examine a set of pages and decide which of them are trustworthy. For example, we might pick the pages of highest PageRank to examine and it is essentially impossible to give a spam page a PageRank near the top of the list. 
+    \item Pick a domain whose membership is controlled, on th assumption that is hard for a spammer to get a page in that domain. For example, we could pick the .edu domain, since university pages are unlikely to be spam farms.
+\end{enumerate}
+
+It is likely that search engines today implement a strategy of the second type routinely, so that what we think of as PageRank really is a form of TrustRank.
+
+\subsection{Spam Mass}\label{subsec:spam-mass}
+
+\mcomment{book 191 pdf 209}
