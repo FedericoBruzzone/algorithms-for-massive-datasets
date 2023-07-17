@@ -1,0 +1,55 @@
+\chapter{Finding Similar Items}\label{sec:finding-similar-items}
+
+We show how the problem of finding textually similar documents can be turned into such a set problem by the technique known as ``shingling''. We introduce a technique called ``minhashing'', which compresses large sets in such a way that we can still deduce the similarity of the underlying sets from their compressed versions. Another important problem that arises when we search for similar items of any kind is the problem of ``nearest neighbor search''. We show how this problem can be solved by a technique called ``Locality Sensitive Hashing''. 
+
+\section{Application of Near-Neighbor Search}\label{sec:application-of-near-neighbor-search}
+
+We shall focus initially on a particular notion of ``similarity'': the similarity of sets by looking at the relative size of their intersection. This notion is called \textit{Jaccard similarity}:
+\begin{equation*}
+    \text{Jaccard}(A, B) = \frac{|A \cap B|}{|A \cup B|}
+\end{equation*}
+where $A$ and $B$ are sets. The Jaccard similarity is a number between 0 and 1, where 0 means that the two sets are disjoint, and 1 means that they are equal.
+
+\subsection{Similarity of Documents}\label{subsec:similarity-of-documents}
+
+We can use the Jaccard similarity to measure the similarity of documents. We can represent a document as a set of words that occur in it. We can then measure the similarity of two documents by measuring the similarity of the sets of words that occur in them.
+
+In the base case, where the two documents are exact duplicates, we can compare them character by character. However in many applications, the document are not identical, but they share a lot of part of text.
+
+\begin{itemize}
+    \item Plagiarism: finding plagiarized documents tests our ability to find textually similar documents.
+    \item Mirror Pages: a mirror page is a page that is identical to another page, except for some minor changes, such as the replacement of the author's name or the addition of a few words.
+    \item Articles from the Same Source: we may want to find articles from the same source, such as the New York Times.
+\end{itemize}
+
+\subsection{Collaborative Filtering as a Similar-Sets Problem}\label{subsec:collaborative-filtering-as-a-similar-sets-problem}
+
+Another class of applications where similarity of sets is very important is called \textit{collaborative filtering}, a process where we raccomend to users items that other similar users have liked. 
+\\
+\\
+\noindent \textbf{On-line Purchases} 
+
+\noindent We can use collaborative filtering to recommend products to users based on the products that other similar users have purchased. We can say that two users are similar if their sets of purchased products have a high Jaccard similarity. 
+
+Collaborative filtering requires us to find the nearest neighbors of a given user. However, by combining the similarity-finding with clustering, we are able to find the nearest neighbors of a user very quickly.
+\\
+\\
+\noindent \textbf{Movie Ratings}
+
+\noindent We can see movies as similar if they were rented or rated highly by many of the same customers, and see customers as similar if they rented or rated highly many of the same movies. 
+
+When out data consists of rating rather then binary decisions, we cannot use the sets of items. Some alternative approaches are:
+
+\begin{enumerate}
+    \item Ignore low-rated customer/movie pairs.
+    \item Use a threshold to convert ratings to binary decisions.
+    \item If ratins are on a scale of 1 to 5, we can put in a multi-set the number of times each movie was rated. In order to compute Jaccard similarity of a multi-set, we can use the following formula:
+    \begin{equation*}
+        \text{Jaccard}(A, B) = \frac{\sum_{i=1}^n \min(A_i, B_i)}{\sum_{i=1}^n \max(A_i, B_i)}
+    \end{equation*}
+\end{enumerate}
+
+
+\section{Shingling of Documents}\label{sec:shingling-of-documents}
+
+\mcomment{Shingling is a technique for finding similarity between documents. }

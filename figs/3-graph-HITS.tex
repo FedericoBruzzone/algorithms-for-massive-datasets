@@ -4,6 +4,7 @@
     \node (B) at (3,0) {B};
     \node (C) at (0,-3) {C};
     \node (D) at (3,-3) {D};
+    \node (E) at (-2, -5) {E};
 \end{scope}
 
 \begin{scope}[>={Stealth[black]},
@@ -18,8 +19,8 @@
     
     \path [->] (D) edge node {} (B);
     \path [->] (D) edge node {} (C);
-
-    \path [->] (C) edge [out=270,in=180,looseness=8] node[above] {} (C);
+   
+    \path [->] (C) edge node {} (E);
 
 \end{scope}
 \end{tikzpicture}

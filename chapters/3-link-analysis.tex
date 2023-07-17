@@ -320,14 +320,12 @@ Now, we can compute the PageRank $y$ of target page $t$. Its PageRank comes from
 \end{enumerate}
 
 \noindent From (1) and (2) we have:
-\begin{equation*}
-    \begin{split}
-        y & = x + \beta m \left(\beta \frac{y}{m} + \frac{(1 - \beta)}{n}\right) \\
-          & = x + \beta^2 y + \beta (1 - \beta) \frac{m}{n}\\
-          & = \frac{x}{1 - \beta^2} + \frac{\beta (1 - \beta)}{1 - \beta^2} \frac{m}{n} \qquad \text{ solving for } y \\
-          & = \frac{x}{1 - \beta^2} + c \frac{m}{n} \qquad \text{where } c = \frac{\beta}{(1 + \beta)}   
-\end{split}
-\end{equation*}
+\begin{align*}
+    y & = x + \beta m \left(\beta \frac{y}{m} + \frac{(1 - \beta)}{n}\right) & \\
+      & = x + \beta^2 y + \beta (1 - \beta) \frac{m}{n} & \\
+      & = \frac{x}{1 - \beta^2} + \frac{\beta (1 - \beta)}{1 - \beta^2} \frac{m}{n} & \text{solving for } y \\
+      & = \frac{x}{1 - \beta^2} + c \frac{m}{n} & \text{where } c = \frac{\beta}{(1 + \beta)}   
+\end{align*}
 
 \subsection{Combating Link Spam}\label{subsec:combating-link-spam}
 
@@ -352,4 +350,94 @@ It is likely that search engines today implement a strategy of the second type r
 
 \subsection{Spam Mass}\label{subsec:spam-mass}
 
-\mcomment{book 191 pdf 209}
+The idea behind spam mass is that we measure for each page the fraction of its PageRank that come from spam. Suppose page $p$ has PageRank $r$ and the TrustRank $t$ based on some teleport set of trustworthy pages, then the \textit{spam mass} of $p$ is:
+\begin{equation*}
+    \text{SM} (p) = \frac{r - t}{r}
+\end{equation*}
+A negative or small positive smap mass means that $p$ is probably not a spam page, while a spam mass close to 1 means that $p$ is probably a spam page.
+
+\section{Hubs and Authorities}\label{sec:hubs-and-authorities}
+
+The algorithm for computing ``hubs and authorities'' is a variant of PageRank. This algorithm is sometimes called \textit{HITS} (\textit{Hyperlink-Induced Topic Search}) . 
+
+While PageRank assume a one-dimensional notion of importance for pages, HITS views important pages as having two different types of importance:
+
+\begin{enumerate}
+    \item Pages that provide information about a topic. These pages are called \textit{authorities}.
+    \item Pages that provide links to authorities, where to go to find out about that topic. These pages are called \textit{hubs}.
+\end{enumerate}
+
+\noindent HITS uses a mutually recursive definition of two concepts: ``a page is a good hub if it links to good authorities, and a page is a good authority if it is linked to by good hubs.''
+
+\subsection{Formalizing Hubbiness and Authority}\label{subsec:formalizing-hubbiness-and-authority}
+
+We shall assign two score to each Web page. One score represents the \textit{hubbiness} of a page and the other represents the \textit{authority} of a page. Assuming that pages are enumerated, we represent these scores as two vectors $\mathbf{h}$ and $\mathbf{a}$. In order to estimate the \textit{hubbiness} and \textit{authority} of a page, we can estimate the authority of successors and the hubbiness of predecessors, respectively. Normally scale the values of the vectors $\mathbf{h}$ and a so that the largest component is 1. 
+
+To describe the iteratie computation of $\mathbf{h}$ and $\mathbf{a}$, we need to define the \textit{adjacency/link matrix} $A$ of the Web, $L_{n \times n}$ where $n$ is the number of pages. The entry $L_{ij}$ is 1 if there is a link from page $i$ to page $j$ and 0 otherwise. Let $L^T$ be the transpose of $L$. 
+
+\begin{figure}[H]
+\centering
+\scalebox{1}{
+    \input figs/3-graph-HITS.tex
+}
+\caption{Sample data for HITS}
+\label{fig:HITS}
+\end{figure}
+
+\begin{figure}[H]
+\begin{equation*}
+\centering
+    L =
+    \begin{bmatrix}
+        0 & 1 & 1 & 1 & 0 \\
+        1 & 0 & 0 & 1 & 0 \\
+        0 & 0 & 0 & 0 & 1 \\
+        0 & 1 & 1 & 0 & 0 \\
+        0 & 0 & 0 & 0 & 0 \\
+    \end{bmatrix}
+    \qquad
+    L^T =
+    \begin{bmatrix}
+        0 & 1 & 0 & 0 & 0 \\
+        1 & 0 & 0 & 1 & 0 \\
+        1 & 0 & 0 & 1 & 0 \\
+        1 & 1 & 0 & 0 & 0 \\
+        0 & 0 & 1 & 0 & 0 \\
+    \end{bmatrix}
+\end{equation*}
+\caption{The link matrix $L$ and its transpose $L^T$ for the graph in Fig. \ref{fig:HITS}}
+\end{figure}
+
+We can express:
+
+\begin{align*}
+    \mathbf{h} & = \lambda L \mathbf{a} & \text{ where } \lambda \text{ is the scaling factor} \\
+    \mathbf{a} & = \mu L^T \mathbf{h} & \text{ where } \mu \text{ is the scaling factor}
+\end{align*}
+
+And we can compute $\mathbf{h}$ and $\mathbf{a}$ independently:
+
+\begin{align*}
+    \mathbf{h} & = \lambda \mu L L^T \mathbf{h} \\
+    \mathbf{a} & = \mu \lambda L^T L \mathbf{a}
+\end{align*}
+
+Howevere, since $L L^T$ and $L^T L$ are not as sparse as $L$ and $L^T$, we can use the following algorithm:
+
+\begin{algorithm}[H]
+\SetAlgoLined
+\DontPrintSemicolon
+\caption{HITS algorithm - \textit{Hyperlink-Induced Topic Search}}
+\KwIn{A link matrix $L$}
+\Begin{
+    % h vector with all 1
+    $\mathbf{h} \gets \mathbf{1}_n \equiv [1, 1, \dots, 1]_n$\;
+    \While{$\mathbf{h}$ and $\mathbf{a}$ have not converged}{
+        $\mathbf{h} \gets L^T \mathbf{a}$ \;
+        $\mathbf{a} \gets L \mathbf{h}$\;
+        normalize $\mathbf{h}$ and $\mathbf{a}$ \tcp*{largest component to 1}
+    }
+}
+\KwOut{The hubbiness and authority vectors $\mathbf{h}$ and $\mathbf{a}$}
+\end{algorithm}
+

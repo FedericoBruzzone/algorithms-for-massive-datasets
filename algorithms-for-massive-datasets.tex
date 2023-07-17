@@ -16,10 +16,14 @@
 % \usepackage[nomessages]{fp}
 \usepackage{xfp}
 \usepackage{pgf-umlcd}
+
+% List of figures
 \usepackage{tocloft}
+% Algorithm
+\usepackage[ruled,vlined,linesnumbered]{algorithm2e} %,noend
 
 \usetikzlibrary{arrows.meta}
-\usepackage{import}
+% \usepackage{import}
 
 \begin{document}
 
@@ -45,6 +49,7 @@
 \tableofcontents
 
 \newpage
+
 \listoffigures
 
 \mainmatter
@@ -52,6 +57,7 @@
 \input chapters/1-data-mining.tex
 \input chapters/2-map-reduce-cost-model.tex
 \input chapters/3-link-analysis.tex
+\input chapters/4-finding-similar-items.tex
 
 % \input sample/ex-introduction.tex
 % \input sample/ex-newchap.tex
