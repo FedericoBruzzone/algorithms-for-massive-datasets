@@ -52,4 +52,40 @@ When out data consists of rating rather then binary decisions, we cannot use the
 
 \section{Shingling of Documents}\label{sec:shingling-of-documents}
 
-\mcomment{Shingling is a technique for finding similarity between documents. }
+The most effective way to represent documents as sets is to construct from the document the set of short string of characters that appear within it. These strings are called \textit{shingles}. 
+
+A \textit{k}-shingle of a document is simply a sequence of $k$ characters that appears in it. For example, suppose that $D$ is the document containing the string ``\texttt{abcdadb}'' and that $k = 2$. Then the set of 2-shingles for $D$ is $\{ \texttt{ab}, \texttt{bc}, \texttt{cd}, \texttt{da}, \texttt{db} \}$. 
+
+\subsection{Choosing the Shingle Size}\label{subsec:choosing-the-shingle-size}
+
+We can pick $k$ to be any constant we like. But, if $k$ is too small, then the Jaccard similarity between two documents will be very high, even if the documents are completely different. On the other hand, if $k$ is too large, then we will miss the similarity between documents that share a lot of common text.
+
+The important thing to remember is that, $k$ should be picked large enough that the probability of a given shingle appearning in any given document is low. 
+
+A good rule of thumb is to immagine that there are only 20 characters and estimate the number of $k$-shingles as $20^k$. For example, for an email we can choose $k = 5$, since $20^5 = 3.2$ million and an email is unlikely to contain more than a few million characters. For a web page, we can choose $k = 9$, since $20^9 = 5.4$ trillion and a web page is unlikely to contain more than a few trillion characters.
+
+\subsection{Hashing Shingles}\label{subsec:hashing-shingles}
+
+Instead of using substring directly as shingles, we can pick a hash function $h$ and use $h(S)$ as the shingle for any string $S$. For instance, we can pick $k = 9$ and use the hash function $h(S) = \{0, 1, \dots, 2^{32} - 1\}$, we need to store only 4 bytes for each shingle. 
+
+Notice that we can differentiate documents better if we use 9-shingles and hash them down to four bytes than to use 4-shingles, even though the space used to represent a shingle is the same.
+
+\subsection{Shingles Built from Words}\label{subsec:shingles-built-from-words}
+
+An alternative form of shingle has proved effective for the problem of identifying similar news articles, as mentioned in Section \ref{subsec:similarity-of-documents}. The exploitable distinction for this problem is that the news articles are written in a rather different style than are other elements that typically appear on the page with the article. However, for the problem of finding similar news articles, it was found that defining a shingle to be a stop word followed by the next two words, regardless of whether or not they were stop words, formed a useful set of shingles. 
+
+\mcomment{book 80, pdf 98}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
