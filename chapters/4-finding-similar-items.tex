@@ -74,7 +74,15 @@ Notice that we can differentiate documents better if we use 9-shingles and hash 
 
 An alternative form of shingle has proved effective for the problem of identifying similar news articles, as mentioned in Section \ref{subsec:similarity-of-documents}. The exploitable distinction for this problem is that the news articles are written in a rather different style than are other elements that typically appear on the page with the article. However, for the problem of finding similar news articles, it was found that defining a shingle to be a stop word followed by the next two words, regardless of whether or not they were stop words, formed a useful set of shingles. 
 
+\section{Similarity-Preserving Summaries of Sets}\label{sec:similarity-preserving-summaries-of-sets}
+
+Set of shingles are large. Even if we hash them to four bytes each, the set needed to store a set is still large. The goal of this section is to replace large sets by much smaller representation called ``signatures'' that preserve the similarity of the sets.
+
+The important property we need for signature is that we can compare the signature of two sets and get a good estimate of their Jaccard similarity. It is not possible that the signature of two sets are identical but their Jaccard similarity is low.
+
 \mcomment{book 80, pdf 98}
+
+
 
 
 
