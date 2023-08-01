@@ -80,7 +80,33 @@ Set of shingles are large. Even if we hash them to four bytes each, the set need
 
 The important property we need for signature is that we can compare the signature of two sets and get a good estimate of their Jaccard similarity. It is not possible that the signature of two sets are identical but their Jaccard similarity is low.
 
-\mcomment{book 80, pdf 98}
+\subsection{Matrix Representation of Sets}\label{subsec:matrix-representation-of-sets}
+
+Before explaining how it is possibile create a small signature from a large set, we need to introduce a matrix representation of sets. The columns of the matrix correspond to the sets, and the row correspond to the elements of the universal sets from which elements of the sets are drawn.
+Given a row $i$ and a column $j$, the entry $M_{ij}$ is 1 if the element $i$ is in the set $j$ and 0 otherwise.
+
+\begin{figure}[H]
+\centering
+\begin{tabular}{|c|c|c|c|c|}
+  \hline
+  \textit{Element} & $S_1$ & $S\_2$ & $S_3$ & $S_4$\\
+  \hline
+  \textit{a} & 1 & 0 & 0 & 1  \\
+  \textit{b} & 0 & 0 & 1 & 0  \\
+  \textit{c} & 0 & 1 & 0 & 1  \\
+  \textit{d} & 1 & 0 & 1 & 1  \\
+  \textit{e} & 0 & 0 & 1 & 0  \\
+  \hline
+\end{tabular}
+\captionsetup{justification=centering}\\
+\caption{Matrix representation of sets}
+\label{fig:matrix-representation-of-sets}
+\end{figure}
+
+It is important remember that the characteristic matrix is unlikely to be the way the data is stored in practice. The matrix representation is just a convenient way to think about sets.
+
+\subsection{Minhashing}\label{subsec:minhashing}
+
 
 
 
