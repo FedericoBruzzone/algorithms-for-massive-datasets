@@ -82,14 +82,14 @@ The important property we need for signature is that we can compare the signatur
 
 \subsection{Matrix Representation of Sets}\label{subsec:matrix-representation-of-sets}
 
-Before explaining how it is possibile create a small signature from a large set, we need to introduce a matrix representation of sets. The columns of the matrix correspond to the sets, and the row correspond to the elements of the universal sets from which elements of the sets are drawn.
+Before explaining how it is possible create a small signature from a large set, we need to introduce a matrix representation of sets. The columns of the matrix correspond to the sets, and the row correspond to the elements of the universal sets from which elements of the sets are drawn.
 Given a row $i$ and a column $j$, the entry $M_{ij}$ is 1 if the element $i$ is in the set $j$ and 0 otherwise.
 
 \begin{figure}[H]
 \centering
 \begin{tabular}{|c|c|c|c|c|}
   \hline
-  \textit{Element} & $S_1$ & $S\_2$ & $S_3$ & $S_4$\\
+  \textit{Element} & $S_1$ & $S_2$ & $S_3$ & $S_4$\\
   \hline
   \textit{a} & 1 & 0 & 0 & 1  \\
   \textit{b} & 0 & 0 & 1 & 0  \\
@@ -107,19 +107,197 @@ It is important remember that the characteristic matrix is unlikely to be the wa
 
 \subsection{Minhashing}\label{subsec:minhashing}
 
+The signature we deisre to construct for sets are composed of the results of a large number of calulation each of which is a ``minhash`` of the characteristic matrix. 
 
+To \textit{minhash} a set represented by a column of the characteristic matrix, we first randomly permute the rows of the matrix. Then, the minhash value of the set is the number of the first row in which the set has a 1. 
 
+\begin{equation*}
+    \begin{split}
+        h(S) &= \min_{i \in S} \boldsymbol{\pi}(i)\\
+        \text{where } \boldsymbol{\pi}(x) &= \alpha x + \beta \text{ mod } n\\ 
+        \text{and } \alpha, \beta &\text{ are random integers,}\\
+        n & \text{ is number of rows in the matrix}
+    \end{split}
+\end{equation*}
 
+\subsection{Minhashing and Jaccard Similarity}\label{subsec:minhashing-and-jaccard-similarity}
 
+The minhashing technique has the property that the probability that the minhash of two sets is the same is equal to the Jaccard similarity of the sets.
 
+To see why, we need to picture the columns for those two sets. If we restrict our attention to the column $S_1$ and $S_2$, then rows can divided into three categories:
 
+\begin{enumerate}
+    \item $X$ rows have 1 in both $S_1$ and $S_2$. 
+    \item $Y$ rows have 1 in only one of $S_1$ and $S_2$ and 0 in the other.
+    \item $Z$ rows have 0 in both $S_1$ and $S_2$.
+\end{enumerate}
 
+Remembering that the matrix is sparse, most rows are in category 3 ($Z$). However, it is the ratio between $X$ and $Y$ that determines the $\text{Jaccard}(S_1, S_2)$ and the $\mathbb{P}(h(S_1) = h(S_2))$.
 
+Let $x \in X$ and $y \in Y$, then:
 
+\begin{equation*}
+    \begin{split}
+        \text{Jaccard}(S_1, S_2) &= x / (x + y)\\
+        \text{where } x &= |S_1 \cap S_2|\\
+        x + y & = |S_1 \cup S_2|
+    \end{split}
+\end{equation*}
 
+Consider the probability, immagine the rows permuted randomly and proceed from top. The $\mathbb{P}(\text{we meet a row in } X \text{ before we meet a row in } Y) = x / (x + y)$. If the first row we meet is in $X$, then $h(S_1) = h(S_2)$, but if the first row we meet is in $Y$, then $h(S_1) \neq h(S_2)$. We can conclude that:
 
+\begin{equation*}
+    \begin{split}
+        \mathbb{P}(h(S_1) = h(S_2)) &= \mathbb{P}(\text{we meet a row in } X \text{ before we meet a row in } Y)\\
+        &= x / (x + y)\\
+        &= \text{Jaccard}(S_1, S_2)
+    \end{split}
+\end{equation*}
 
+\subsection{Minhash Signature}\label{subsec:minhash-signature}
 
+Let $M$ our characteristic matrix. To represent sets, we pick at random some number $n$ of premutations of the rows of $M$. Call the minhash functions determined by these permutations $h_1, h_2, \dots, h_n$. From the column representing set $S$, construct the \textit{minhash signature} vecor $[h_1(S), h_2(S), \dots, h_n(S)]$ for $S$. Now, we can form the \textit{signature matrix} $M\prime$, where the $i$-th column of $M$ is replaced by the minhash signature vector. Note that the signature matrix $M\prime$ has the same number of columns as $M$ but only $n$ rows. 
+\\
+\\
+It is not feasible to permute randomly a large characteristic matrix. However, it is possible to simulate a random permutation by a random hash function that map row numbers to as many buckets as there are rows. A hash function that maps integers $0, 1, \dots, n - 1$ to bucket numbers $0, 1, \dots, n - 1$, typically will map some pair of integers to the same bucket and leave some buckets empty.
+
+Thus, instead of picking $n$ random permutations of rows, we pick $n$ randomly chosen hash functions $h_1, h_2, \dots, h_n$. We construct the signature matrix $M\prime$ by considering each row in their given order. Set $\text{SIG}(i, c)$ be the element of the signature matrix for the $i$-th hash function and column $c$. Initially, we set $\text{SIG}(i, c) = \infty$ for all $i$ and $c$. We handle row $r$ by doing the following:
+
+\begin{enumerate}
+    \item Compute $h_1(r), h_2(r), \dots, h_n(r)$. For example, $h_1(r) = x + 1 \text{ mod } 5$ and $h_2(r) = 3x + 1 \text{ mod } 5$.
+    \item For each column $c$ do the following:
+        \begin{itemize}
+            \item[(a)] If $c$ has $0$ in row $r$, do nothing.
+            \item[(b)] However, if $c$ has $1$ in row $r$, then for each $i = 1, 2, \dots, n$, set $\text{SIG}(i, c) = \min(\text{SIG}(i, c), h_i(r))$.
+        \end{itemize}
+\end{enumerate}
+
+\begin{figure}[H]
+\centering
+\begin{tabular}{|c|c|c|c|c||c|c|}
+  \hline
+  \textit{Row} & $S_1$ & $S_2$ & $S_3$ & $S_4$ & $x + 1 \text{ mod } 5$ & $3x + 1 \text{ mod } 5$\\
+  \hline
+  \textit{0} & 1 & 0 & 0 & 1 & 1 & 1 \\
+  \textit{1} & 0 & 0 & 1 & 0 & 2 & 4 \\
+  \textit{2} & 0 & 1 & 0 & 1 & 3 & 2 \\
+  \textit{3} & 1 & 0 & 1 & 1 & 4 & 0 \\
+  \textit{4} & 0 & 0 & 1 & 0 & 0 & 3 \\
+  \hline
+\end{tabular}
+\captionsetup{justification=centering}\\
+\caption{Hash functions computed for the matrix of Figure \ref{fig:matrix-representation-of-sets}.}
+\label{fig:matrix-hash-functions}
+\end{figure}
+
+Notice that these two simple hash functions are true permutations of the tows, but a true permutations is only possible because the number of rows, $5$, is prime.
+\\
+\\
+Now, simulate the algorithm for computing the \textbf{signature matrix}. Initially, the matrix has only $\infty$ values. 
+
+\begin{figure}[H]
+\centering
+\begin{tabular}{|c||c|c|c|c|}
+  \hline
+   & $S_1$ & $S_2$ & $S_3$ & $S_4$\\
+  \hline
+  $h_1$ & $\infty$ & $\infty$ & $\infty$ & $\infty$ \\ 
+  $h_2$ & $\infty$ & $\infty$ & $\infty$ & $\infty$ \\
+  \hline
+\end{tabular}
+\captionsetup{justification=centering}\\
+% \caption{}
+\label{fig:sig-matrix-0}
+\end{figure}
+
+Consider the first row of the matrix of Figure \ref{fig:matrix-hash-functions}. We see that the values of $h_1(0)$ and $h_2(0)$ are both $1$. In the first row, only $S_1$ and $S_4$ are $1$, so only this columns are updated comparing the values of $h_1(0)$ and $h_2(0)$ with the $\infty$ (current values). The result is the following: 
+
+\begin{figure}[H]
+\centering
+\begin{tabular}{|c||c|c|c|c|}
+  \hline
+   & $S_1$ & $S_2$ & $S_3$ & $S_4$\\
+  \hline
+  $h_1$ & $1$ & $\infty$ & $\infty$ & $1$ \\ 
+  $h_2$ & $1$ & $\infty$ & $\infty$ & $1$ \\
+  \hline
+\end{tabular}
+\captionsetup{justification=centering}\\
+% \caption{}
+\label{fig:sig-matrix-1}
+\end{figure}
+
+Consider the second row of the matrix of Figure \ref{fig:matrix-hash-functions}. This row has value $1$ only in $S_3$, and $h_1(1) = 2$ and $h_2(1) = 4$. Thus, we set $\text{SIG}(1, 3) = 2$ and $\text{SIG}(2, 3) = 4$. The result is the following:
+
+\begin{figure}[H]
+\centering
+\begin{tabular}{|c||c|c|c|c|}
+  \hline
+   & $S_1$ & $S_2$ & $S_3$ & $S_4$\\
+  \hline
+  $h_1$ & $1$ & $\infty$ & $2$ & $1$ \\ 
+  $h_2$ & $1$ & $\infty$ & $4$ & $1$ \\
+  \hline
+\end{tabular}
+\captionsetup{justification=centering}\\
+% \caption{}
+\label{fig:sig-matrix-2}
+\end{figure}
+
+The row numbered 3 of Figure \ref{fig:matrix-hash-functions} has $1$ in $S_2$ and $S_4$ and the values of $h_1(2) = 3$ and $h_2(2) = 2$. Thus, we set $\text{SIG}(1, 2) = 3$ and $\text{SIG}(2, 2) = 2$. We could also set $\text{SIG}(1, 4) = 3$ and $\text{SIG}(2, 4) = 2$, but we do not do this because we already have a smaller value for $\text{SIG}(1, 4)$ and $\text{SIG}(2, 4)$. The result is the following:
+
+\begin{figure}[H]
+\centering
+\begin{tabular}{|c||c|c|c|c|}
+  \hline
+   & $S_1$ & $S_2$ & $S_3$ & $S_4$\\
+  \hline
+  $h_1$ & $1$ & $3$ & $2$ & $1$ \\ 
+  $h_2$ & $1$ & $2$ & $4$ & $1$ \\
+  \hline
+\end{tabular}
+\captionsetup{justification=centering}\\
+% \caption{}
+\label{fig:sig-matrix-3}
+\end{figure}
+
+Next comes the row numbered 3 in Figure \ref{fig:matrix-hash-functions}. This row has $1$ in $S_1$, $S_3$ and $S_4$ and the values of $h_1(3) = 4$ and $h_2(3) = 0$. The value of $h_1(3)$ is greater than all values of the first row. However, the value $0$ is smaller then the values that are already present in the second row. Thus, we set $\text{SIG}(2, 1) = 0$ and $\text{SIG}(2, 3) = 0$ and $\text{SIG}(2, 4) = 0$. The result is the following:
+
+\begin{figure}[H]
+\centering
+\begin{tabular}{|c||c|c|c|c|}
+  \hline
+   & $S_1$ & $S_2$ & $S_3$ & $S_4$\\
+  \hline
+  $h_1$ & $1$ & $3$ & $2$ & $1$ \\ 
+  $h_2$ & $0$ & $3$ & $0$ & $0$ \\
+  \hline
+\end{tabular}
+\captionsetup{justification=centering}\\
+% \caption{}
+\label{fig:sig-matrix-3}
+\end{figure}
+
+Finally, consider the row of Figure \ref{fig:matrix-hash-functions} numbered 4. This row has $1$ only in $S_3$ and the values of $h_1(4) = 0$ and $h_2(4) = 3$. Thus, we compare $[2, 0]$ with $[0, 3]$ and set $\text{SIG}(1, 3) = 0$ and keep $\text{SIG}(2, 3) = 0$ because it is already smaller. The result is the following:
+
+\begin{figure}[H]
+\centering
+\begin{tabular}{|c||c|c|c|c|}
+  \hline
+   & $S_1$ & $S_2$ & $S_3$ & $S_4$\\
+  \hline
+  $h_1$ & $1$ & $3$ & $0$ & $1$ \\ 
+  $h_2$ & $0$ & $3$ & $0$ & $0$ \\
+  \hline
+\end{tabular}
+\captionsetup{justification=centering}\\
+% \caption{}
+\label{fig:sig-matrix-3}
+\end{figure}
+
+We can estimate the Jaccard similarities of the underlying sets from this signature matrix. Column $S_1$ and $S_4$ are identical, so $\text{Jaccard}(S_1, S_4) = 1$ but if we look at Figure \ref{fig:matrix-hash-functions}, we see that the Jaccard similarity of $S_1$ and $S_4$ is $2/3$. This is because the signature matrix is only an approximation of the Jaccard similarities, and this example is to small for the law of the large numbers to ensure that the estimate is close.
+
+\section{Locality-Sensitive Hashing for Documents}
 
 
 
