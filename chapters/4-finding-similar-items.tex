@@ -297,7 +297,10 @@ Finally, consider the row of Figure \ref{fig:matrix-hash-functions} numbered 4. 
 
 We can estimate the Jaccard similarities of the underlying sets from this signature matrix. Column $S_1$ and $S_4$ are identical, so $\text{Jaccard}(S_1, S_4) = 1$ but if we look at Figure \ref{fig:matrix-hash-functions}, we see that the Jaccard similarity of $S_1$ and $S_4$ is $2/3$. This is because the signature matrix is only an approximation of the Jaccard similarities, and this example is to small for the law of the large numbers to ensure that the estimate is close.
 
-\section{Locality-Sensitive Hashing for Documents}
+\section{Locality-Sensitive Hashing for Documents}\label{sec:lsh-documents}
 
+Even though we can use minhashing to compress large documents into small signatures and preserve the expected similarity of any pair of documents, it still may be impossible to find the pairs with greatest similarity efficiently. The reason is that the number of pairs of documents may be too large, even if there are not too many documents. 
 
+We need to focus our attention only on pairs that are likely to be similar, without investigating all pairs. This is the idea behind \textbf{locality-sensitive hashing} (LSH).
 
+\subsection{LSH for Minhash Signatures}\label{sec:lsh-minhash}
