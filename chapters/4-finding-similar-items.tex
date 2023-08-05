@@ -315,7 +315,7 @@ If we minhash signature for the items, an effective way to choose the hashing is
 \begin{figure}[H]
 \centering
 \scalebox{1}{
-    \input figs/4-signautre-matrix-4-bands.tex
+    \input figs/4-signature-matrix-4-bands.tex
 }
 \caption{Dividing a signature matrix into four bands of three rows per band}
 \label{fig:4-signature-matrix-4-bands}
@@ -349,4 +349,56 @@ After choosing $r$ and $b$, this function has the form of an \textit{S-curve} as
 
 The \textit{threshold} of similarity $s$ at which the probability of becoming a candidate pair is $1/2$ is a function of $b$ and $r$. If $b$ and $r$ are large, the threshold is high, so only pairs of documents that are very similar will be candidates. If $b$ and $r$ are small, the threshold is low, so many pairs of documents will be candidates. An approximation of the threshold is $1/b^{1/r}$.
 
+\subsection{Combining the Techniques}\label{sec:combining-techniques}
+
+We now give an approach to finding the set of candidate pairs for similar documents and then discovering the truly similar documents among the candidates. This approach can produce \textit{false positives} and \textit{false negatives}. 
+
+\begin{enumerate}
+    \item Pick a value $k$ and construct from each document the set of $k$-shingles. Optionally, hash the $k$-shingles to shorter bucket numbers.
+    \item Sort the document-shingle pair to orger them by shingle.
+    \item Pick a length $n$ for the minhash signatures. Feed the sorted list to the algorithm of Section \ref{subsec:minhash-signature} to produce the minhash signature for each document.
+    \item Choose a threshold $t$ for Jaccard similarity. Pick a number of bands $b$ and a number of rows $r$ per band, such that $br = n$. If the presence of \textit{false negatives} is not acceptable, then choose $b$ and $r$ to produce a threshold lower than $t$.
+    \item Construct candidate pairs by applying the LSH technique of Section \ref{sec:lsh-minhash}.
+    \item Examine each candidate pair's signatures and determined if the fraction of components in which they agree is at least $t$.
+    \item Optionally, if the signature are sufficiently similar, go to the documents themselves and check that they are truly similar.
+\end{enumerate}
+
+\section{Distance Measures}\label{sec:distance-measures}
+
+The Jaccard similarity is a measure of how close sets are, it is not really a distance measure. Jaccard distance is defined as $1 - \text{Jaccard similarity}$ and it is a distance measure, but there it is not the only one.
+
+In order to define a distance measure, we need to define a \textit{distance function} $d(x, y)$ that satisfies the following axioms:
+
+\begin{enumerate}
+    \item $d(x, y) \geq 0$ for all $x$ and $y$. (no negative distances)
+    \item $d(x, y) = 0$ iif $x = y$. (distances are positive, except for identical points)
+    \item $d(x, y) = d(y, x)$. (distance is simmetric)
+    \item $d(x, z) \leq d(x, y) + d(y, z)$. (triangle inequality)
+\end{enumerate}
+
+\subsection{Euclidean Distance}\label{subsec:euclidean-distance}
+
+An \textit{n-dimensional Euclidean space} is one where points are vectors of $n$ real numbers. The Euclidean distance between two points $x$ and $y$ in an $n$-dimensional Euclidean space, which we shall refer to as the $L_2$\textit{-norm}, is defined as:
+
+\begin{equation*}
+    \begin{split}
+        d(x, y) & = \sqrt{\sum_{i=1}^{n} (x_i - y_i)^2}\\
+        \text{where } x & = [x_1, x_2, \dots, x_n] \text{ and }\\ 
+                      y & = [y_1, y_2, \dots, y_n]
+    \end{split}
+\end{equation*}
+
+It is easy to verify the axioms of a distance function for the Euclidean distance. The Euclidean distance cannot be negative because it is the square root of a sum of squares, and the sum of square are strictly positive. On the other hand, the distance will be $0$ if $x_i = y_i$ for all $i$, which means that $x = y$. Simmetry follows because $(x_i - y_i)^2 = -(y_i - x_i)^2$. Finally, the triangle inequality follows from the fact that the square root is a concave function, so the sum of square roots is less than the square root of the sum. 
+
+There are other distance measures that have been used for Euclidean spaces. For any constant $r$, we can define the $L_r$\textit{-norm} as:
+
+\begin{equation*}
+    \begin{split}
+    d(x, y) & = \left(\sum_{i=1}^{n} \vert x_i - y_i \vert ^ r \right)^{1/r}\\
+        \text{where } x & = [x_1, x_2, \dots, x_n] \text{ and }\\ 
+                      y & = [y_1, y_2, \dots, y_n]
+    \end{split}
+\end{equation*}
+
+The $L_1$-norm is also known as the \textit{Manhattan distance} or \textit{city-block distance}. It is the distance between two points in a city where you can only travel along the streets. The $L_\infty$-norm is the limit as $r$ approaches infinity. As $r$ gets larger, only the dimension with the largest difference between $x$ and $y$ matters. Thus, the $L_\infty$-norm is the maximum of $\vert x_i - y_i \vert$ over all $i$.
 
