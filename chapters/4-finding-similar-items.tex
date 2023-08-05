@@ -304,3 +304,49 @@ Even though we can use minhashing to compress large documents into small signatu
 We need to focus our attention only on pairs that are likely to be similar, without investigating all pairs. This is the idea behind \textbf{locality-sensitive hashing} (LSH).
 
 \subsection{LSH for Minhash Signatures}\label{sec:lsh-minhash}
+
+One general approach to LSH it to ``hash'' items several times, doing it in such a way that if two items are similar, then the probability that they will collide is high. We can consider any pair that hashed to the same bucket as a \textit{candidate pair}.
+
+We hope that dissimilar pairs will not collide. Notice that this is not guaranteed and we call \textit{false positives} the pairs that are dissimilar but collide. On the other hand, we call \textit{false negatives} the pairs that are similar but do not collide, and we hope that their number is small.
+
+If we minhash signature for the items, an effective way to choose the hashing is to divide the signature matrix into $b$ bands of $r$ rows each. For each band, we hash the $r$ rows into a hash table with $n$ (big enough) buckets. We can use the same hash function for all bands but we use a different bucket array for each band, so column with the same vector in different buckets will not in the same bucket.
+
+
+\begin{figure}[H]
+\centering
+\scalebox{1}{
+    \input figs/4-signautre-matrix-4-bands.tex
+}
+\caption{Dividing a signature matrix into four bands of three rows per band}
+\label{fig:4-signature-matrix-4-bands}
+\end{figure}
+
+Figure \ref{fig:4-signature-matrix-4-bands} show part of a signature matrix of $12$ rows divided into four bands of three rows each. The second and fourth columns are identical, so they will be hashed to the same bucket in the first band and the columns that are different will be hashed to different buckets. Two columns that do not agree in Band $1$ have three other chances to become a candidate pair. However, if two columns are similar there is a good chance that they will be hashed to the same bucket in at least one of the bands.
+
+\subsection{Analysis of the Banding Technique}\label{sec:analysis-banding-technique}
+
+Suppose we use $b$ bands of $r$ rows, and suppose that a particular pair of documents have Jaccard similarity $s$. Recall from Section \ref{subsec:minhashing-and-jaccard-similarity} that the probability that two columns agree in a particular row is $s$. We can calculate the probability that two signature become a candidate pair as follows:
+
+\begin{equation*}
+    \begin{split}
+        \mathbb{P}(\text{agree in all row of one band}) & = s^r \\
+        \mathbb{P}(\text{disagree in at least one row of one band}) & = 1 - s^r \\
+        \mathbb{P}(\text{disagree in at least one row of all bands}) & = (1 - s^r)^b \\    
+        \mathbb{P}(\text{agree in all the rows of a band and become a candidate pair}) & = 1 - (1 - s^r)^b
+    \end{split}
+\end{equation*}
+
+After choosing $r$ and $b$, this function has the form of an \textit{S-curve} as shown in Figure \ref{fig:4-s-curve}. Where in the $x$-axis we have the Jaccard similarity $s$ and in the $y$-axis we have the probability that two signatures become a candidate pair. 
+
+\begin{figure}[H]
+\centering
+\scalebox{1}{
+    \input figs/4-s-curve.tex
+}
+\caption{The S-curve}
+\label{fig:4-s-curve}
+\end{figure}
+
+The \textit{threshold} of similarity $s$ at which the probability of becoming a candidate pair is $1/2$ is a function of $b$ and $r$. If $b$ and $r$ are large, the threshold is high, so only pairs of documents that are very similar will be candidates. If $b$ and $r$ are small, the threshold is low, so many pairs of documents will be candidates. An approximation of the threshold is $1/b^{1/r}$.
+
+
