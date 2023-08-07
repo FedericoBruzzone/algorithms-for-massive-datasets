@@ -402,3 +402,151 @@ There are other distance measures that have been used for Euclidean spaces. For 
 
 The $L_1$-norm is also known as the \textit{Manhattan distance} or \textit{city-block distance}. It is the distance between two points in a city where you can only travel along the streets. The $L_\infty$-norm is the limit as $r$ approaches infinity. As $r$ gets larger, only the dimension with the largest difference between $x$ and $y$ matters. Thus, the $L_\infty$-norm is the maximum of $\vert x_i - y_i \vert$ over all $i$.
 
+\subsection{Jaccard Distance}\label{subsec:jaccard-distance}
+
+The \textit{Jaccard distance} of sets $x$ and $y$ is defined as $d(x, y) = 1 - \text{Jaccard}(x, y)$. Recall that the Jaccard similarity of two sets is define as follows:
+\begin{equation*}
+    \text{Jaccard}(x, y) = \frac{\vert x \cap y \vert}{\vert x \cup y \vert}
+\end{equation*}
+
+We have to verify that this is a distance function:
+\begin{enumerate}
+    \item $d(x, y)$ is non-negative because the size of the intersection cannot exceed the size of the union.
+    \item $d(x, y) = 0$ if and only if $x = y$ because $x \cap x = x \cup x = x$.
+    \item $d(x, y) = d(y, x)$ because the union and intersection are symmetric.
+    \item For the triangle inequality, recall from Section \ref{subsec:minhashing-and-jaccard-similarity} that $\text{Jaccard}(x, y)$ is the probability that a random minhash function maps $x$ and $y$ to the same value. The Jaccard distance $d(x, y)$ is the probability that a random minhash function \textit{does not} send $x$ and $y$ to the same value. We can therefore  translate the condition $d(x, y) \leq d(x, z) + d(z, y)$ to the statement that if $h$ is a random minhash function, then the probability that $h(x) = h(y)$ is at least as large as the probability that $h(x) = h(z)$ plus the probability that $h(z) = h(y)$. This is true because the probability that $h(x) = h(y)$ is at least as large as the probability that $h(x) = h(z)$ plus the probability that $h(z) = h(y)$.
+\end{enumerate}
+
+\subsection{Cosine Similarity}\label{subsec:cosine-similarity}
+
+The \textit{cosine similarity} makes sense in spaces that have dimensions, including Euclidean spaces and discrete version of Euclidean spaces, such as spaces where points are vectors with ingeger components of Boolean ($0$ and $1$) components. The cosine distance between two points is the angle that the vectors to those points make with the origin. 
+
+We can calculate the cosine distance by first calculating the cosine of the angle, and then applying the arc-cosine function to translate to an angle in the 0-180 degree range. Given two vectors $x$ and $y$, the cosine of the angle between them is the dot product $x \cdot y$ divided by the $L_2$-norms of $x$ and $y$:
+\begin{equation*}
+    \begin{split}
+        \text{cosine}(x, y) & = \frac{x \cdot y}{\Vert x \Vert \Vert y \Vert}\\
+        \text{where } x & = [x_1, x_2, \dots, x_n] \text{ and }\\ 
+                      y & = [y_1, y_2, \dots, y_n] \text{ and }\\   
+                      x \cdot y & = \sum_{i=1}^{n} x_i y_i\\
+    \end{split}
+\end{equation*}
+
+\subsection{Edit Distance}\label{subsec:edit-distance}
+
+This distance makes sanse when points are strings. The distance between two strings $x = x_1 x_2 \dots x_n$ and $y = y_1 y_2 \dots y_m$ is the minimum number of insertions and deletions of single characters that will convert $x$ to $y$.
+
+Another way to define and calculate the edit distance $d(x, y)$ is to compute a \textit{longest common subsequence} (LCS) of $x$ and $y$. An LCS of $x$ and $y$ is a string that is constructed by deleting positions from $x$ and $y$, and that is a subsequence of both $x$ and $y$. 
+
+The edit distance $d(x,y)$ can be calculated as the length of $x$ plus the length of $y$ minus twice the length of an LCS of $x$ and $y$.
+
+\subsection{Hamming Distance}\label{subsec:hamming-distance}
+
+Given a space of vectors, we define the \textit{Hamming Distance} between two vecotrs to be the number of components in which they differ. Clearly, the Hamming distance cannot be negative, and it is zero if and only if the two vectors are identical. The triangle inequelity holds because if $x$ and $y$ differ in $k$ components, and $y$ and $z$ differ in $l$ components, then $x$ and $z$ differ in at most $k + l$ components.
+
+Hamming distance is used when the vector are Boolean. 
+
+\section{The Theory of Locality-Sensitive Functions}\label{sec:the-theory-of-locality-sensitive-functions}
+
+The LSH technique developed in Section \ref{sec:lsh-documents} is one example of a family of functions (the minhash functions) that can be combined (by the binding technique) to distinguish strongly between pairs at a low distance from pairs at a high distance.
+
+We shall explore other families of functions that can be used to produce a candidate pair efficiently. These functions can apply to the space of sets and Jaccard distance, or another space and distance function. 
+
+There are three conditions that we need for a family of functions:
+
+\begin{enumerate}
+    \item They must be more likely to make close pairs be candidate pairs than distant pairs.
+    \item They must be statistically independent, it is possible to estimate the probability that functions will all give the same answer by the product rule for independent events.
+    \item They must be easy to compute.
+        \begin{itemize}
+            \item[(a)] They must be able to identify candidate pairs in time much less than the time take to look at all pairs. For example, minhashing is linear in the number of elements in the set.
+            \item[(b)] They must be combinable to build functions that are better at avoiding false negatives and false positives, and the combined functions must be easy to compute.
+        \end{itemize}
+\end{enumerate}
+
+\subsection{Locality-Sensitive Functions}\label{subsec:locality-sensitive-functions}
+
+We consider functions that take two items and render a decision about whether these items should be a candidate pair. 
+
+In many cases, the function $f$ is a hash function and the decision is based on whether or not the result is equal. We use $f(x) = f(y)$ to denote that $f(x, y) = "yes"$. We call \textit{family} of functions a collection of functions in this form. For example, the family of minhash functions, each based on one of the possible permutations of rows of a characteristic matrix, form a family.
+
+Let $d_1 < d_2$ be two distances. A family $\boldsymbol{\mathcal{F}}$ of functions is said to be $(d_1, d_2, p_1, p_2)$-sensitive if for every $f$ in $\boldsymbol{\mathcal{F}}$: 
+
+\begin{itemize}
+    \item If $d(x, y) \leq d_1$, then $\mathbb{P}(f(x) = f(y)) \geq p_1$.
+    \item If $d(x, y) \geq d_2$, then $\mathbb{P}(f(x) = f(y)) \leq p_2$.
+\end{itemize}
+
+We have only one way to find a family of locality-sensitive functions: use the faimly minhash functions, and assume that the distance is calculated by the Jaccard distance. 
+
+\subsection{Amplifying a Local-Sensitive Family}\label{subsec:amplifying-a-local-sensitive-family}
+
+Suppose we have a given $(d_1, d_2, p_1, p_2)$-sensitive family $\boldsymbol{\mathcal{F}}$. We can construct a new family $\boldsymbol{\mathcal{F'}}$ by the \textit{AND-construction} on $\boldsymbol{\mathcal{F}}$, which is defined as follows. Each member of $\boldsymbol{\mathcal{F'}}$ consists of $r$ members of $\boldsymbol{\mathcal{F}}$ for some $r$. If $f \in \boldsymbol{\mathcal{F}}$ and $f$ is constructed from the set $\{f_1, f_2, \dots, f_r\}$ of members of $\boldsymbol{\mathcal{F}}$, we say $f(x) = f(y)$ if and only if $f_i(x) = f_i(y)$ for all $i = 1, 2, \dots, r$.
+
+Since the members of $\boldsymbol{\mathcal{F}}$ are independently chosen to make a mamber of  $\boldsymbol{\mathcal{F'}}$, we can assert that $\boldsymbol{\mathcal{F'}}$ is a $(d_1, d_2, (p_1)^r, (p_2)^r)$-sensitive family.
+
+There is another construction, which we call the \textit{OR-construction}, that turns a $(d_1, d_2, p_1, p_2)$-sensitive family $\boldsymbol{\mathcal{F}}$ into a $(d_1, d_2, 1 - (1 - p_1)^b, 1 - (1 - p_2)^b)$-sensitive family $\boldsymbol{\mathcal{F'}}$. We define $f(x) = f(y)$ if and only if $f_i(x) = f_i(y)$ for at least one $i = 1, 2, \dots, b$.
+
+If $p$ is the probability that a member of $\boldsymbol{\mathcal{F}}$ will declare $(x, y)$ to be a candidate pair, then $1 - p$ is the probability that it will not. $1 - p^b$ is the probability that none of $\{f_1, f_2, \dots, f_b\}$ will declare $(x, y)$ to be a candidate pair. Therefore, $1 - (1 - p)^b$ is the probability that at least one of $\{f_1, f_2, \dots, f_b\}$ will declare $(x, y)$ to be a candidate pair.
+
+We can combine the AND-construction and the OR-construction in any order to make the lower probability close to $0$ and the higher probability close to $1$.
+\\
+\\
+For example, suppose we start a family $\boldsymbol{\mathcal{F}}$. We use the AND-construction with $r = 4$ to produce a family $\boldsymbol{\mathcal{F'}}$. We then apply the OR-construction to $\boldsymbol{\mathcal{F'}}$ with $b = 4$ to produce a third family $\boldsymbol{\mathcal{F''}}$. 
+
+It means that $\boldsymbol{\mathcal{F'}}$ is a quadruple of functions from $\boldsymbol{\mathcal{F}}$, and $\boldsymbol{\mathcal{F''}}$ is a quadruple of quadruples of functions from $\boldsymbol{\mathcal{F}}$. Thus, $\boldsymbol{\mathcal{F''}}$ is a family of $16$ functions from $\boldsymbol{\mathcal{F}}$.
+
+\begin{equation*}
+    \begin{split}
+        \boldsymbol{\mathcal{F}}   & = (0.2, 0.6, 0.8, 0.1)-sensitive \\
+        \boldsymbol{\mathcal{F''}} & = (0.2, 0.6, 1 - (1 - 0.8)^4, 1 - (1 - 0.1)^4)-sensitive \\
+                                   & = (0.2, 0.6, 0.8785, 0.0985)-sensitive 
+    \end{split}
+\end{equation*}
+
+\subsection{LSH Families for Hamming Distance}\label{subsec:lsh-families-for-hamming-distance}
+
+Suppose we have a space of $d$-dimensional vectors, and $h(x, y)$ denotes the Hamming distance between $x$ and $y$. We can define $f_i(x)$ to be the $i$-th bit of $x$. Then, $f_i(x) = f_i(y)$ if and only if $x$ and $y$ agree in the $i$-th bit. The probability that $f_i(x) = f_i(y)$ is $1 - h(x, y) / d$. This situation is almost like the one we encountered for minhashing.
+
+Thus, the family $\boldsymbol{\mathcal{F}}$ of functions $\{f_1, f_2, \dots, f_d\}$ is $(d_1, d_2, 1- p_1/d, 1 - p_2/d)$-sensitive faimly of hash functions, for any $d_1 < d_2$.
+
+This family is composed by $d$ functions and this is limiting to apply AND-construction or OR-construction. 
+
+\subsection{Random Hyperplanes and the Cosine Distance}\label{subsec:random-hyperplanes-and-the-cosine-distance}
+
+Recall from Section \ref{subsec:cosine-similarity} that the cosine distance between two vectors is the angle between the two vectors. 
+
+\begin{figure}[H]
+\centering
+\scalebox{1}{
+    \input figs/4-two-vectors.tex
+}
+\caption{Two vectors make an angle $\theta$}
+\label{fig:4-two-vectors}
+\end{figure}
+
+Suppose we pick a hyperplane through the origin. The hyperplane divides the space into two half-spaces. First condider a vector $v$ that is the dashed line in Figure \ref{fig:4-two-vectors}, note that $x$ and $y$ are on different sides of the hyperplane. Then the dot product $v \cdot x$ and $v \cdot y$ have opposite signs.
+
+On the other hand, the randomly chosen vector $v$ could be normal to a hyperplane like the dotted line in Figure \ref{fig:4-two-vectors}. In this case, $x$ and $y$ are on the same side of the hyperplane. Then the dot product $v \cdot x$ and $v \cdot y$ have the same sign.
+
+The probability that $v \cdot x$ and $v \cdot y$ have the same sign is $\theta / 180$. Thus, each hash function $f$ in our locality-sensitive family $\boldsymbol{\mathcal{F}}$ is defined by a randomly chosen vector $v_f$. Given two vectors $x$ and $y$, then $f(x) = f(y)$ if and only if $v_f \cdot x$ and $v_f \cdot y$ have the same sign. The parameters are essentially the same as for the Jaccard-distance family. That is, $\boldsymbol{\mathcal{F}}$ is a $(d_1, d_2, (180-d_1)/180, (180-d_2)/180)$-sensitive family.
+
+\subsection{LSH Families for Euclidean Distance}\label{subsec:lsh-families-for-euclidean-distance}
+
+We will start with a 2-dimensional Euclidean space. Each hash function $f$ in our family $\boldsymbol{\mathcal{F}}$ will be associated with a randomly chosen line in this space. Pick a constant $a$ and divide the line into segments of length $a$, as shown in Figure \ref{fig:4-two-points-and-buckets}.       
+
+The segment of the line are the buckets into which function $f$ hashed the points. A point is hashed to the bucket in which its projection onto the line lies. If the distance $d$ between two points is small compared to $a$, then there is a good chance that the two points will be hashed to the same bucket. If $d$ is large compared to $a$, then there is a small chance that the two points will be hashed to the same bucket.
+
+However, suppose $d$ is larger the $a$. In order for there to be any chance of two points falling in the same bucket, we need $d\cos{\theta} < a$, where $\theta$ is the angle between the line and the line connecting the two points.
+
+\begin{figure}[H]
+\centering
+\scalebox{1}{
+    \input figs/4-two-points-and-buckets.tex
+}
+\caption{Two points at distance $d \gg a$ have a small chance of being hashed to the same bucket}
+\label{fig:4-two-points-and-buckets}
+\end{figure}
+
+If $d \geq 2a$, then there is no more than a $1/3$ chance the two points fall in the same bucket. The reason is that for $\cos{\theta}$ to be less than $1/2$, we need to have $\theta > 60^{\circ}$ and $\theta < 90^{\circ}$. If $\theta > 0^{\circ}$ and $\theta < 60^{\circ}$, then $\cos{\theta} > 1/2$. But since $\theta$ is the smaller angle between two randomly chosen lines in the plane, $\theta$ is twice as likely to be between $0^{\circ}$ and $60^{\circ}$ as it is to be between $60^{\circ}$ and $90^{\circ}$.
+
+We conclude that the family $\boldsymbol{\mathcal{F}}$ just described froms a $(a/2, 2a, 1/2, 1/3)$-sensitive family of hash functions. That is, for istances up to $a/2$ the probability that two points are hashed to the same bucket is at least $1/2$, while for distances greater than $2a$ the probability is at most $1/3$.

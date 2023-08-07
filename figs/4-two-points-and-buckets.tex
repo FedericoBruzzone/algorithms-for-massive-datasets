@@ -1,0 +1,18 @@
+\begin{tikzpicture}
+
+    \draw (0,0) -- (10,0);
+
+    \foreach \x in {2,4,...,8}
+        \draw (\x, 0.25) -- (\x, -0.25);
+    
+    \draw[{stealth}-{stealth}] (2, -0.5) -- (4, -0.5) node[midway, below, text width=1.5cm] {Bucket with $a$};
+   
+    \draw (3, 2) -- (7, 2);
+    \draw (3, 3.5) -- (7, 2);
+    
+    \draw[dashed] (3, 3.5) -- (3, 0);
+    \draw[dashed] (7, 2) -- (7, 0);
+    
+    \node at (5.75, 2.25) {$\theta$};
+    \node at (6.5, 3) [text width=2cm] {Points at distance $d$};
+\end{tikzpicture}
