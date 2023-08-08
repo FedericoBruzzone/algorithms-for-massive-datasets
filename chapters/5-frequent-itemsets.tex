@@ -1,0 +1,101 @@
+\chapter{Frequent Itemsets}\label{ch:frequent-itemsets}
+
+The problem of finding frequent itemsets differs from the similarity search discussed in Chapter \ref{ch:finding-similar-items}. Here we are interested in the absolute number of baskets that contain a particular set of items. In Chapter \ref{ch:finding-similar-items} we wanted items that have a large fraction of their baskets in common, even if that fraction is small.
+
+\section{The Market-Basket Model}\label{sec:market-basket-model}
+
+The \textit{market-basket} model of data is used to describe a common form of many-many relationship between two kinds of objects. We have \textit{items} and \textit{baskets}, sometimes called ``transaction''. Each basket consists of a set of items (an \textit{itemset}), and usually we assume that the number of items in a basket is small compared to the total number of items. The number of baskets is usually assumed to be large, they cannot all be stored in memory.
+
+\subsection{Definitions of Frequent Itemsets}\label{subsec:definitions-of-frequent-itemsets}
+
+A set of items that appears in many baskets is said ``frequent''. If $I$ is a set of items, the \textit{support} for $I$ is the number of baskets for which $I$ is a subset. We say $I$ is \textit{frequent} if its support is greater than some \textit{support threshold} $s$. 
+\\
+\\
+Each set is a basket, and the word are items. Ignore capitalization.
+
+\begin{align*}
+    S_1 & = \{\text{Cat}, \text{and}, \text{Dog}, \text{bites}\} \\
+    S_2 & = \{\text{Yahoo}, \text{news}, \text{claims}, \text{a}, \text{cat}, \text{mated}, \text{with}, \text{a}, \text{dog}, \text{and}, \text{produced}, \text{viable}, \text{offspring}\} \\
+    S_3 & = \{\text{Cat}, \text{killer}, \text{likely}, \text{is}, \text{a}, \text{big}, \text{dog}\}\\
+    S_4 & = \{\text{Professional}, \text{free}, \text{advice}, \text{on}, \text{dog}, \text{training}, \text{puppy}, \text{training}\}\\
+    S_5 & = \{\text{Cat}, \text{and}, \text{kitten}, \text{training}, \text{and}, \text{behavior}\}\\
+    S_6 & = \{\text{Dog}, \text{\&}, \text{Cat}, \text{provides}, \text{dog}, \text{training}, \text{in}, \text{Eugene}, \text{Oregon}\}\\
+    S_7 & = \{\text{``Dog, and, cat''}, \text{is}, \text{a}, \text{slang}, \text{term}, \text{used}, \text{by}, \text{police}, \text{officers}, \text{for}, \text{a}, \\ 
+        & \text{male-female}, \text{relationship}\}\\
+    S_8 & = \{\text{Shop}, \text{for}, \text{your}, \text{show}, \text{dog}, \text{grooming}, \text{and}, \text{pet}, \text{supplies}\}\\
+\end{align*}
+
+Since the empty set is a subset of any set, the support for $\emptyset$ is $8$. 
+
+Among the singleton sets, $\{\text{cat}\}$ and $\{\text{dog}\}$ are frequent. ``Dog'' appears in all but basket $S_5$, so its support is $7$. ``Cat'' appears in all but $S_4$ and $S_8$, so its support is $6$ etc.
+
+Suppose that we set our threshold at $s = 3$. Then there are five frequent singleton items $\{\text{cat}\}$, $\{\text{dog}\}$, $\{\text{and}\}$, $\{\text{a}\}$, and $\{\text{training}\}$.
+
+\begin{figure}[H]
+\centering
+\begin{tabular}{|c|c|c|c|c|}
+  \hline
+   & training & a & and & cat\\
+  \hline
+  dog & $4,6$ & $2,3,7$ & $1,2,7,8$ & $1,2,3,6,7$ \\ 
+  cat & $5,6$ & $2,3,7$ & $1,2,5,7$ &  \\
+  and & $5$ & $2,7$ & & \\
+  a   & \text{none} & & & \\ 
+  \hline
+\end{tabular}
+\captionsetup{justification=centering}\\
+\caption{Occurences of doubletons}
+\label{fig:occurences-of-doubletons}
+\end{figure}
+
+Now, let us look at the doubletons. A doubleton cannot be frequent unless both items in the set are frequent by themselves. There are only ten possibile frequent doubletons. Figure \ref{fig:occurences-of-doubletons} is a table indicating which baskets contain which doubletons.
+
+There are only five frequent doubletons if $s = 3$, they are the ones that have at least three baskets in common. We can do for triple, etc. 
+
+\subsection{Application of Frequent Itemsets}\label{subsec:application-of-frequent-itemsets}
+
+The original application of the market-basket model was in the analysis of true market baskets. For example, by finding frequent itemsets, a retailer can learn what is commonly purchased together, and use that information to decide how to arrange items in the store.
+
+However, applications of frequent-itemsets analysis is not limited to market baskets. The same model can be used to mine many other kinds of data. Some examples are:
+
+\begin{enumerate}
+    \item \textit{Related concepts}: Let items be words, and let baskets be documents. A basket/document contains those items/words that are present in the document. However, if we ignore all the most common words, then we would hope to find among the frequent pairs some pairs of words that represent a joint concept.
+    \item \textit{Plagiarism}: Let the items be documents and the baskets be sentences An item/document is ``in'' a basket/sentence if the sentence is in the document. In this application, we
+look for pairs of items that appear together in several baskets.
+\end{enumerate}
+
+\subsection{Association Rules}\label{subsec:association-rules}
+
+While the subject of this chapter is extracting frequent sets of items from data, this information is often presented as a collection of if–then rules, called \textit{assciation rules}. The form of an association rule is $I \rightarrow j$, where $I$ is a set and $j$ is an item. 
+
+This implication say that if all items in $I$ appear in some busket, then $j$ is likely to appear to. With likely meaning the uspport for $I \cup \{j\}$ (the \textit{confidence}), the basket that contains all items in $I$ and $j$.
+
+We define the \textit{interest} of an association rule $I \rightarrow j$ to be the difference between the confidence of the rule and the support of $j$ alone.
+
+\subsection{Finding Association Rules with High Confidence}\label{subsec:finding-association-rules-with-high-confidence}
+
+Identifying useful association rules is not much harder than finding frequent itemsets. If we are looking for association rules $I \rightarrow j$ that apply to a reasonable number of baskets, then the support for $I$ must be reasonably high.
+
+Suppose we have found all itemsets that are smaller than our threshold, and we have exact support calculated for each of these itemsets. We can find within them all the association rules that have both high support and high confidence. 
+
+Let $J$ be the set of $n$ items, then there are only $n$ possibile association rules of the form $I - {j}\rightarrow j \  \forall j\in J$. If $J$ is frequent, $J - {j}$ is frequent for all $j \in J$ and it is frequent itemset, and we have already calculated its support. Their ratio is the confidence of the rule $J - {j}\rightarrow j$.
+
+\section{Market Baskets and the A-Priori Algorithm}\label{sec:market-baskets-and-the-a-priori-algorithm}
+
+The original improvement on the obvious algorithms, known as ``A-Priori'', from which many variants have been developed, will be covered here.
+
+\subsection{Representation of Market Basket Data}\label{subsec:representation-of-market-basket-data}
+
+
+
+
+
+
+
+
+
+
+
+
+
+

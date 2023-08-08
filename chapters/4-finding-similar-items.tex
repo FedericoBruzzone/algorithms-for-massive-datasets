@@ -1,4 +1,4 @@
-\chapter{Finding Similar Items}\label{sec:finding-similar-items}
+\chapter{Finding Similar Items}\label{ch:finding-similar-items}
 
 We show how the problem of finding textually similar documents can be turned into such a set problem by the technique known as ``shingling''. We introduce a technique called ``minhashing'', which compresses large sets in such a way that we can still deduce the similarity of the underlying sets from their compressed versions. Another important problem that arises when we search for similar items of any kind is the problem of ``nearest neighbor search''. We show how this problem can be solved by a technique called ``Locality Sensitive Hashing''. 
 
@@ -210,7 +210,9 @@ Now, simulate the algorithm for computing the \textbf{signature matrix}. Initial
 \label{fig:sig-matrix-0}
 \end{figure}
 
-Consider the first row of the matrix of Figure \ref{fig:matrix-hash-functions}. We see that the values of $h_1(0)$ and $h_2(0)$ are both $1$. In the first row, only $S_1$ and $S_4$ are $1$, so only this columns are updated comparing the values of $h_1(0)$ and $h_2(0)$ with the $\infty$ (current values). The result is the following: 
+Consider the first row of the matrix of 
+
+NowFigure \ref{fig:matrix-hash-functions}. We see that the values of $h_1(0)$ and $h_2(0)$ are both $1$. In the first row, only $S_1$ and $S_4$ are $1$, so only this columns are updated comparing the values of $h_1(0)$ and $h_2(0)$ with the $\infty$ (current values). The result is the following: 
 
 \begin{figure}[H]
 \centering
