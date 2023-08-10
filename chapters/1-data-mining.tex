@@ -16,7 +16,7 @@ Classification often starts by looking at documents, and finding the significant
 \begin{equation*}\label{eq:tf}
     \bm{TF}_{ij} = \frac{f_{ij}}{\max_{k} f_{kj}}
 \end{equation*}
-That is, the term frequency of term $i$ in document $j$ is $f_{ij}$ normalized by dividing it the maximum number of occurrences of any term (perhaps excluding stop words) in the same document. 
+That is, the term frequency of term $i$ in document $j$ is $f_{ij}$ normalized by dividing it the maximum number of occurrences of any term (perhaps excluding stop words) in the same document.
 
 The IDF for a term is defined as follows. Suppose term $i$ appears in $n_i$ of the $N$ documents in the collection. Then $\bm{IDF}_i = \log_2(N/n_i)$. The \textbf{TF.IDF} score for term $i$ in document $j$ is then $\bm{TF}_{ij} \times \bm{IDF}_i$.
 
@@ -43,7 +43,7 @@ Some algebra lets us obtain approximations to many complex expression. Condiser 
 \begin{equation*}
     \Bigg(\left(1 + \frac{1}{n}\right)^n\Bigg)^{\alpha\beta}
 \end{equation*}
-Since $\alpha$ is assumed small, $n$ is large, so the subexpression $\left(1 + \frac{1}{n}\right)^n$ will be cose to the limiting value of $e$. 
+Since $\alpha$ is assumed small, $n$ is large, so the subexpression $\left(1 + \frac{1}{n}\right)^n$ will be cose to the limiting value of $e$.
 
 Some other usefull approximations follow from the Taylor expansion of $e^x$. That is,
 \begin{equation*}

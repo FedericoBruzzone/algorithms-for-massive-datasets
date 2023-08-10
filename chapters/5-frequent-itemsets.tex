@@ -86,16 +86,31 @@ The original improvement on the obvious algorithms, known as ``A-Priori'', from 
 
 \subsection{Representation of Market Basket Data}\label{subsec:representation-of-market-basket-data}
 
+We assume that market-basket data is stored in a file basket-by-basket. Possibly, the data is in a distributed file system as in chapter \ref{chap:map-reduce-cost-model}.
 
+We could imagine that such a file begins:
 
+\begin{equation*}
+    \textbf{\{23, 456, 1001\}\{3, 18, 92, 145\}\{ \dots} 
+\end{equation*}
 
+The characters $\{ \}$ are used to delimit baskets. And the items in a basket are separated by commas. Thus, the first basket contains items $23$, $456$, and $1001$. The second basket contains items $3$, $18$, $92$, and $145$, etc.
 
+It may be that one machine receives the entire file, or we could be using MapReduce or a similar tool to divide the work among many processors. 
 
+We also assume that the size of the file of baskets is sufficiently large that it cannot be stored in main memory. Thus, a major cost of any algorithm is the time it take to read the file. One a disk block full of baskets is in main memory, we can expand it, generaing all the subsets of size $k$.
 
+If there are $20$ items in a basket, then there are $\binom{20}{2} = 190$ pairs of items in the basket, and these can be generated easily.
 
+As the size of subsets we want to generate gets larger, the number of subsets grows exponentially. In fact takes approximately $n^k / k$ to genreate all the subsets of size $k$ for basket with $n$ items. Usually, we use $k = 2$ or $3$.
 
+Moreover, all the algorithms we discuss have the property that they read the basket file sequentially. Thus, algorithms can be characterized by the number of passes they make over the file, and we can controll only this parameter.
 
+\subsection{Use of Main Memory for Itemsets Counting}\label{subsec:use-of-main-memory-for-itemsets-counting}
 
+All frequent-itemset algorithms require us to maintain many different counts as we make a pass through the data. For example, we might need to count the number of items that each pair of items occurs in a baskets. If we do not have enough main memory to store all these counts, so this is a limitation. 
+
+It is not trivial to store the $\binom{n}{k}$ counts for all the $k$-itemsets. We can use a hash table, but we need to be careful to avoid collisions.
 
 
 
