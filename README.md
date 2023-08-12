@@ -2,7 +2,7 @@
 
 This repository contains a LaTeX file that generates a PDF document comprising comprehensive notes for the course "Algorithms for Massive Datasets" taught by [Dario Malchiodi](https://malchiodi.di.unimi.it/teaching/AMD/2022-23/it) based on the content from the book [Mining of Massive Datasets](http://www.mmds.org/). The PDF document serves as a reference guide and study material for the course. However, please note that we do not assume any responsibility for the correctness of the notes provided.
 
-# How compile 
+# How to compile 
 
 Add the files in `./style` folder to your `TEXMFHOME/tex/latex` (how to know TEXMFHOME: `kpsewhich -var-value TEXMFHOME`).
 And run `sudo texhash` or `sudo mktexlsr` or `sudo texconfig`, in the last case you should choose `REHASH` option and then `exit`. 
@@ -14,13 +14,6 @@ And run `sudo texhash` or `sudo mktexlsr` or `sudo texconfig`, in the last case 
 or
 
 `pdflatex --shell-escape ./algorithms-for-massive-datasets.tex` 
-
-# Using the Notes
-To make the most of these notes, you can:
-
-1. Download the PDF document to your local machine.
-2. Print the PDF for offline studying or use a PDF viewer of your choice to read it digitally.
-3. Review the notes to deepen your understanding of the topics covered in the course. However, it is essential to independently verify the information and consult additional resources, such as the recommended book or lecture materials, for a comprehensive grasp of the subject matter.
 
 # Contributing
 If you notice any errors, typos, or have suggestions for improving the notes, we welcome your contributions. You can open an issue or submit a pull request with your proposed changes. Together, we can enhance the quality and usefulness of this resource for future learners.
