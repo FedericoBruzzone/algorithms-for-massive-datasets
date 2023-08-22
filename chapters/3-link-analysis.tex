@@ -157,15 +157,15 @@ An alternative strategy is based on partitioning $M$ into $k^2$ blocks, while $\
 \label{fig:partitioned-matrix}
 \end{figure}
 
-In this method, we use $k^2$ Map tasks. Each task gets one block of $M$ denote as $M_{ij}$ and one stripe of the vecor $\textbf{v}$, which must be $\textbf{v}_j \ \forall \ k \in  i$. Note that $\textbf{v}$ is trasmitted $k$ times and each block of $M$ only once.
+In this method, we use $k^2$ Map tasks. Each task gets one block of $M$ denote as $M_{ij}$ and one stripe of the vector $\textbf{v}$, which must be $\textbf{v}_j \ \forall \ k \in  i$. Note that $\textbf{v}$ is trasmitted $k$ times and each block of $M$ only once.
 
 The advantage of this approach is that we can keep the $j$-th stripe of $\textbf{v}'$ and $\textbf{v}$ in memory while we process $M_{ij}$\\
 \\
-Since we are representing transition matrices in the special way described in Section \ref{subsec:representing-transition-matrix}, we need to consider how the block of Fig. \ref{fig:partitioned-matrix} is represented. For each block, we need data abould all those columns that have at least one nonzero entry within the block. If $k$ is large, then most columns will have nothing in most blocks of its stripe. That, For a given block, we not only have to list those rows that have a nonzero entry for that column, but we must repeat the out-degree for the node represented by the column. That observation upper bounds the space needed to store the blocks of a stipe at twice the space needed to store all the stipe. 
+Since we are representing transition matrices in the special way described in Section \ref{subsec:representing-transition-matrix}, we need to consider how the block of Fig. \ref{fig:partitioned-matrix} is represented. For each block, we need data about all those columns that have at least one nonzero entry within the block. If $k$ is large, then most columns will have nothing in most blocks of its stripe. That, For a given block, we not only have to list those rows that have a nonzero entry for that column, but we must repeat the out-degree for the node represented by the column. That observation upper bounds the space needed to store the blocks of a stipe at twice the space needed to store all the stipe. 
 
 \subsection{Other Efficient Approaches to PageRank Iteration}\label{subsec:other-efficient-approaches-pagerank-iteration}
 
-The algorithm discussed in Section \ref{subsec:pagerank-iteration-mapreduce} is not the only way to compute PageRank using MapReduce. Recall that the algorithm of Section \ref{subsec:pagerank-iteration-mapreduce} uses $k^2$ processors, assuming all Map operations are executed in parallel. We can assign all the blocks in one row of blocks to a single Map task, and thus reduce the number of Map tasks to $k$. We can read the block in a row of blocks one-at-a-time, so the matrix does not consume a significant amount of main-memory. At the same time that we read $M_{ij}$, we must read the vector stripe $\textbf{v}_j$. As a result, each of the $k$ Map tasks reads the entire vecotr $\textbf{v}$, along with $1/k$-th of the matrix.
+The algorithm discussed in Section \ref{subsec:pagerank-iteration-mapreduce} is not the only way to compute PageRank using MapReduce. Recall that the algorithm of Section \ref{subsec:pagerank-iteration-mapreduce} uses $k^2$ processors, assuming all Map operations are executed in parallel. We can assign all the blocks in one row of blocks to a single Map task, and thus reduce the number of Map tasks to $k$. We can read the block in a row of blocks one-at-a-time, so the matrix does not consume a significant amount of main-memory. At the same time that we read $M_{ij}$, we must read the vector stripe $\textbf{v}_j$. As a result, each of the $k$ Map tasks reads the entire vector $\textbf{v}$, along with $1/k$-th of the matrix.
 
 \begin{figure}[H]
 \centering
@@ -174,7 +174,7 @@ The algorithm discussed in Section \ref{subsec:pagerank-iteration-mapreduce} is 
   \textit{Source} & \textit{Degree} & \textit{Destinations} \\
   \hline
   \textit{A} & \textit{3} & \textit{B} \\
-  \textit{B} & \textit{2} & \textit{A} \\
+  \textit{B} & \textit{2} & \textit{C} \\
   \hline
 \end{tabular}
 \captionsetup{justification=centering}\\
@@ -223,7 +223,7 @@ The algorithm discussed in Section \ref{subsec:pagerank-iteration-mapreduce} is 
 \label{fig:sparse-representation-blocks-matrix}
 \end{figure}
 
-The algorithm is the same as the one described in Section \ref{subsec:pagerank-iteration-mapreduce}.But the advantage of this approach is that each Map task can combine all the terms for the portion $\textbf{v}'_i$ for which it is responsible.
+The algorithm is the same as the one described in Section \ref{subsec:pagerank-iteration-mapreduce}. But the advantage of this approach is that each Map task can combine all the terms for the portion $\textbf{v}'_i$ for which it is responsible.
 
 \section{Topic-Sensitive PageRank}\label{sec:topic-sensitive-pagerank}
 
@@ -233,7 +233,7 @@ We can improve the quality of the results of PageRank weighting certain pages mo
 
 Suppose we have identified some pages that represent a topic such as ``sports''. To create a topic-sensitive PageRank for sports, we can arrange that the random surfers are introduced only to a random sports page, rather than to a random page of any kind. The intuition is that pages linked to by sports pages are themselves likely to be sports pages.
 
-The mathematical formulation for the iteration that yields topic-sensitive PageRank is similar to the equation we used for general PageRank. The only difference is how we add the new surfers. Suppose $S$ is a set of integers consisting of the consisting of the row / column number for the pages we have identified as belonging to a certain topic (called the \textit{teleport set}). Let $\textbf{e}_S$ be a vector that has 1 in the components in $S$ and $0$ in other components. Then the \textit{topic-sensitive PageRank} for $S$ is the limit of the iteration
+The mathematical formulation for the iteration that yields topic-sensitive PageRank is similar to the equation we used for general PageRank. The only difference is how we add the new surfers. Suppose $S$ is a set of integers consisting of the row / column number for the pages we have identified as belonging to a certain topic (called the \textit{teleport set}). Let $\textbf{e}_S$ be a vector that has 1 in the components in $S$ and $0$ in other components. Then the \textit{topic-sensitive PageRank} for $S$ is the limit of the iteration
 \begin{equation*}\label{eq:topic-sensitive-pagerank}
     \textbf{v}' = \beta M \textbf{v} + (1 - \beta) \frac{\textbf{e}_S}{|S|}
 \end{equation*}
@@ -244,7 +244,7 @@ Hence, as usual, $M$ is the transition matrix of the Web, and $|S|$ is the size 
 
 In order to integrate topic-sensitive PageRank into a search engine, we must:
 \begin{enumerate}
-    \item Decide on the topis for which we will create specialized PageRank vectors.
+    \item Decide on the topics for which we will create specialized PageRank vectors.
     \item Pick a teleport set for each of these topics, and compute the topic-sensitive PageRank vector.
     \item Find a way of determining the set of topic that are most relevant.
     \item Use the PageRank vectors to order the results of a query.
@@ -255,7 +255,7 @@ In order to integrate topic-sensitive PageRank into a search engine, we must:
 The third step is probably the trickiest. Some possible approaches are:
 \begin{itemize}
     \item[(a)] Allow the user to specify the topic.
-    \item[(b)] Infer the topic(s) by the words that appear in the Web pages recently serched by the user. See \ref{subsec:inferring-topics-from-words}.
+    \item[(b)] Infer the topic(s) by the words that appear in the Web pages recently searched by the user. See \ref{subsec:inferring-topics-from-words}.
     \item[(c)] Infer the topic(s) by information about the user.
 \end{itemize}
 
@@ -263,7 +263,7 @@ The third step is probably the trickiest. Some possible approaches are:
 
 Suffice it to say that topics are characterized by words that appear surprisingly often in documents on that topic. 
 
-If we examine the entire Web, or a sample, we can get the frquency of each word. In making this judgment, we must be careful to avoid some extremely rare word that appears in the sports sample with relatively higher frequency.  
+If we examine the entire Web, or a sample, we can get the frequency of each word. In making this judgment, we must be careful to avoid some extremely rare word that appears in the sports sample with relatively higher frequency.  
 
 Once we have identified a large collection of words that appear much more frequently for all topics, we can examine other pages and classify them according to the topic that has the highest frequency of the words in the page.
 
