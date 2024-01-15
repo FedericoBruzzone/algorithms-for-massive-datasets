@@ -2,18 +2,18 @@
 
 This repository contains a LaTeX file that generates a PDF document comprising comprehensive notes for the course "Algorithms for Massive Datasets" taught by [Dario Malchiodi](https://malchiodi.di.unimi.it/teaching/AMD/2022-23/it) based on the content from the book [Mining of Massive Datasets](http://www.mmds.org/). The PDF document serves as a reference guide and study material for the course. However, please note that we do not assume any responsibility for the correctness of the notes provided.
 
-# How compile 
+# How compile
 
 Add the files in `./style` folder to your `TEXMFHOME/tex/latex` (how to know TEXMFHOME: `kpsewhich -var-value TEXMFHOME`).
-And run `sudo texhash` or `sudo mktexlsr` or `sudo texconfig`, in the last case you should choose `REHASH` option and then `exit`. 
+And run `sudo texhash` or `sudo mktexlsr` or `sudo texconfig`, in the last case you should choose `REHASH` option and then `exit`.
 
 **Compile**
 
-`latexmk --shell-escape ./algorithms-for-massive-datasets.tex` 
+`latexmk --shell-escape ./algorithms-for-massive-datasets.tex`
 
 or
 
-`pdflatex --shell-escape ./algorithms-for-massive-datasets.tex` 
+`pdflatex --shell-escape ./algorithms-for-massive-datasets.tex`
 
 # Using the Notes
 To make the most of these notes, you can:
@@ -36,7 +36,6 @@ This repository is licensed under the [GNU General Public License (GPL)](https:/
 
 ## Contact
 
-If you have any questions or suggestions regarding this repository, please don't hesitate to reach out. You can contact us via the GitHub repository or through the following channels:
-- Email: [federico.bruzzone.i@gmail.com] or [federico.bruzzone@studenti.unimi.it]
+If you have any questions, suggestions, or feedback, do not hesitate to [contact me](https://federicobruzzone.github.io/).
 
 We hope you find this repository helpful in preparing for your "Algorithms for Massive Datasets" exam. Good luck!
